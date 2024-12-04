@@ -6,7 +6,6 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Import your DATABASE_URL
 from app.config.config import DB_CONFIG
 
 # this is the Alembic Config object, which provides
