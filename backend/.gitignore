@@ -1,0 +1,9 @@
+
+# Ignore the 'myenv' directory
+myenv/
+
+# Ignore Alembic Mako templates
+backend/alembic/script.py.mako
+
+# Ignore Python __pycache__ directories and files
+__pycache__/
