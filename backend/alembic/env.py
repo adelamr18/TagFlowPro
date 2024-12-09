@@ -24,7 +24,7 @@ config.set_main_option("sqlalchemy.url", connection_string)
 fileConfig(config.config_file_name)
 
 # Add your model imports here
-from app.models.Admin import Base
+from app.models import Base
 
 # Add your models' Base to the metadata
 target_metadata = Base.metadata
