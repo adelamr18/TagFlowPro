@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation, Route, Routes, Navigate } from "react-router-dom";
 // reactstrap components
@@ -49,7 +48,9 @@ const Auth = (props) => {
                 <Col lg="5" md="6">
                   <h1 className="text-white">TagFlowPro</h1>
                   <p className="text-lead text-light">
-                  Upload and organize files seamlessly while managing tags with ease using TagFlowPro.                  </p>
+                    Upload and organize files seamlessly while managing tags
+                    with ease using TagFlowPro.{" "}
+                  </p>
                 </Col>
               </Row>
             </div>

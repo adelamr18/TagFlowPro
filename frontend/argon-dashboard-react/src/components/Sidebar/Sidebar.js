@@ -1,4 +1,3 @@
-
 /*eslint-disable*/
 import { useState } from "react";
 import { NavLink as NavLinkRRD, Link } from "react-router-dom";
@@ -71,7 +70,11 @@ const Sidebar = (props) => {
   };
 
   const { bgColor, routes, logo } = props;
+  const filteredRoutes = routes.filter(
+    (route) => route.path !== "/forget-password"
+  );
   let navbarBrandProps;
+
   if (logo && logo.innerLink) {
     navbarBrandProps = {
       to: logo.innerLink,
@@ -212,7 +215,7 @@ const Sidebar = (props) => {
             </InputGroup>
           </Form>
           {/* Navigation */}
-          <Nav navbar>{createLinks(routes)}</Nav>
+          <Nav navbar>{createLinks(filteredRoutes)}</Nav>
           {/* Divider */}
           <hr className="my-3" />
           {/* Heading */}

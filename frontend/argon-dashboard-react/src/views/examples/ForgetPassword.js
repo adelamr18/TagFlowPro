@@ -8,7 +8,6 @@ import {
   InputGroupAddon,
   InputGroupText,
   InputGroup,
-  Row,
   Col,
   FormFeedback,
 } from "reactstrap";
@@ -16,15 +15,22 @@ import React, { useState } from "react";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
 
-const Login = () => {
+const ForgetPassword = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [isEmailInvalid, setIsInvalidEmail] = useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
 
-  const [password, setPassword] = useState("");
-  const [isPasswordInvalid, setIsInvalidPassword] = useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+  const [firstPassword, setFirstPassword] = useState("");
+  const [isFirstPasswordInvalid, setIsInvalidFirstPassword] = useState(false);
+  const [firstPasswordErrorMessage, setFirstPasswordErrorMessage] =
+    useState("");
+
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isConfirmPasswordInvalid, setIsInvalidConfirmPassword] =
+    useState(false);
+  const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] =
+    useState("");
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex =
@@ -46,47 +52,85 @@ const Login = () => {
     }
   };
 
-  const handlePasswordChange = (event) => {
+  const handleFirstPasswordChange = (event) => {
     const value = event.target.value;
-    setPassword(value);
+    setFirstPassword(value);
 
     if (value.trim() === "") {
-      setIsInvalidPassword(true);
-      setPasswordErrorMessage("Password is required.");
+      setIsInvalidFirstPassword(true);
+      setFirstPasswordErrorMessage("New password is required.");
     } else if (!passwordRegex.test(value)) {
-      setIsInvalidPassword(true);
-      setPasswordErrorMessage(
+      setIsInvalidFirstPassword(true);
+      setFirstPasswordErrorMessage(
         "Password must be at least 9 characters long, start with a capital letter, and include numbers and special characters."
       );
     } else {
-      setIsInvalidPassword(false);
-      setPasswordErrorMessage("");
+      setIsInvalidFirstPassword(false);
+      setFirstPasswordErrorMessage("");
+    }
+  };
+
+  const handleConfirmPasswordChange = (event) => {
+    const value = event.target.value;
+    setConfirmPassword(value);
+
+    if (value.trim() === "") {
+      setIsInvalidConfirmPassword(true);
+      setConfirmPasswordErrorMessage("Confirmation password is required.");
+    } else if (value !== firstPassword) {
+      setIsInvalidConfirmPassword(true);
+      setConfirmPasswordErrorMessage("Passwords do not match.");
+    } else {
+      setIsInvalidConfirmPassword(false);
+      setConfirmPasswordErrorMessage("");
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    setIsInvalidEmail(false);
+    setIsInvalidFirstPassword(false);
+    setIsInvalidConfirmPassword(false);
+
+    let isValid = true;
+
     if (email.trim() === "") {
       setIsInvalidEmail(true);
       setEmailErrorMessage("Email is required.");
+      isValid = false;
     } else if (!emailRegex.test(email)) {
       setIsInvalidEmail(true);
       setEmailErrorMessage("Please enter a valid email address.");
+      isValid = false;
     }
 
-    if (password.trim() === "") {
-      setIsInvalidPassword(true);
-      setPasswordErrorMessage("Password is required.");
-    } else if (!passwordRegex.test(password)) {
-      setIsInvalidPassword(true);
-      setPasswordErrorMessage(
+    // Validate first password
+    if (firstPassword.trim() === "") {
+      setIsInvalidFirstPassword(true);
+      setFirstPasswordErrorMessage("New password is required.");
+      isValid = false;
+    } else if (!passwordRegex.test(firstPassword)) {
+      setIsInvalidFirstPassword(true);
+      setFirstPasswordErrorMessage(
         "Password must be at least 9 characters long, start with a capital letter, and include numbers and special characters."
       );
+      isValid = false;
     }
 
-    if (!isEmailInvalid && !isPasswordInvalid) {
-      // TODOAdel: Call BE API and pass over the email and the password
+    if (confirmPassword.trim() === "") {
+      setIsInvalidConfirmPassword(true);
+      setConfirmPasswordErrorMessage("Confirmation password is required.");
+      isValid = false;
+    } else if (confirmPassword !== firstPassword) {
+      setIsInvalidConfirmPassword(true);
+      setConfirmPasswordErrorMessage("Passwords do not match.");
+      isValid = false;
+    }
+
+    if (isValid) {
+      // TODOAdel: Call BE API to update the password
+      navigate("/auth/login");
     }
   };
 
@@ -96,7 +140,7 @@ const Login = () => {
         <Card className="bg-secondary shadow border-0">
           <CardBody className="px-lg-5 py-lg-5">
             <div className="text-center text-muted mb-4">
-              <large>Sign in</large>
+              <large>Forget Password</large>
             </div>
             <Form role="form" onSubmit={handleSubmit}>
               <FormGroup>
@@ -129,57 +173,51 @@ const Login = () => {
                     </InputGroupText>
                   </InputGroupAddon>
                   <Input
-                    placeholder="Password"
+                    placeholder="Please enter your new password"
                     type="password"
-                    value={password}
-                    onChange={handlePasswordChange}
-                    invalid={isPasswordInvalid}
+                    value={firstPassword}
+                    onChange={handleFirstPasswordChange}
+                    invalid={isFirstPasswordInvalid}
                   />
                 </InputGroup>
-                {isPasswordInvalid && (
+                {isFirstPasswordInvalid && (
                   <FormFeedback className="error-message-input">
-                    {passwordErrorMessage}
+                    {firstPasswordErrorMessage}
                   </FormFeedback>
                 )}
               </FormGroup>
-              <div className="custom-control custom-control-alternative custom-checkbox">
-                <input
-                  className="custom-control-input"
-                  id="customCheckLogin"
-                  type="checkbox"
-                />
-                <label
-                  className="custom-control-label"
-                  htmlFor="customCheckLogin"
-                >
-                  <span className="text-muted">Remember me</span>
-                </label>
-              </div>
+              <FormGroup>
+                <InputGroup className="input-group-alternative">
+                  <InputGroupAddon addonType="prepend">
+                    <InputGroupText>
+                      <i className="ni ni-lock-circle-open" />
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <Input
+                    placeholder="Confirm your new password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={handleConfirmPasswordChange}
+                    invalid={isConfirmPasswordInvalid}
+                  />
+                </InputGroup>
+                {isConfirmPasswordInvalid && (
+                  <FormFeedback className="error-message-input">
+                    {confirmPasswordErrorMessage}
+                  </FormFeedback>
+                )}
+              </FormGroup>
               <div className="text-center">
                 <Button className="my-4" color="primary" type="submit">
-                  Sign in
+                  Confirm
                 </Button>
               </div>
             </Form>
           </CardBody>
         </Card>
-        <Row className="mt-3">
-          <Col xs="6">
-            <a
-              className="text-light"
-              href="#pablo"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate("/auth/forget-password");
-              }}
-            >
-              <small>Forgot password?</small>
-            </a>
-          </Col>
-        </Row>
       </Col>
     </>
   );
 };
 
-export default Login;
+export default ForgetPassword;

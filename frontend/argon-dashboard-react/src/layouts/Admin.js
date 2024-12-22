@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation, Route, Routes, Navigate } from "react-router-dom";
 // reactstrap components
@@ -22,7 +21,7 @@ const Admin = (props) => {
 
   const getRoutes = (routes) => {
     return routes.map((prop, key) => {
-      if (prop.layout === "/admin") {
+      if (prop.layout === "/admin" || prop.layout === "/auth/forgot-password") {
         return (
           <Route path={prop.path} element={prop.component} key={key} exact />
         );
