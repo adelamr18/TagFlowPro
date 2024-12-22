@@ -196,4 +196,3 @@ Please update the following components: withScriptjs(withGoogleMap(Component))
 ### Original Release
 
 - Added Reactstrap as base framework
-- Added design from Argon Dashboard by Creative Tim
