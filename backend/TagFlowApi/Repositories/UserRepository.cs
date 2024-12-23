@@ -7,34 +7,47 @@ namespace TagFlowApi.Repositories
     public class UserRepository
     {
         private readonly DataContext _context;
-
+        private static int ADMIN_ROLE_ID = 1;
+        
         public UserRepository(DataContext context)
         {
             _context = context;
         }
 
-        // Get user by email and refresh entity to get fresh data.
         public User? GetUserByEmail(string email)
         {
-           return _context.Users.SingleOrDefault(user => user.Email == email);
+            return _context.Users.SingleOrDefault(user => user.Email == email);
         }
 
-        // Update the PasswordHash of a user.
-        public void UpdatePasswordHash(int userId, string newPasswordHash)
+        public bool UpdatePasswordHash(string email, string newPasswordHash)
         {
-            var user = _context.Users.SingleOrDefault(u => u.UserId == userId);
-            if (user == null)
+            var user = _context.Users.SingleOrDefault(u => u.Email == email);
+
+            if (user is not null)
             {
-                throw new InvalidOperationException("User not found");
+                user.PasswordHash = newPasswordHash ?? "";
+                int rowsAffected = _context.SaveChanges();
+
+                if (rowsAffected > 0)
+                {
+                    _context.Entry(user).Reload();
+
+                    if (user.RoleId == ADMIN_ROLE_ID)
+                    {
+                        var admin = _context.Admins.SingleOrDefault(a => a.Email == email);
+                        if (admin is not null)
+                        {
+                            admin.PasswordHash = newPasswordHash ?? "";
+                            _context.SaveChanges();
+                            _context.Entry(admin).Reload(); 
+                        }
+                    }
+
+                    return true; 
+                }
             }
 
-            user.PasswordHash = newPasswordHash;
-
-            // Save the updated password hash to the database
-            _context.SaveChanges();
-
-            // Reload the user to ensure we have the latest data
-            _context.Entry(user).Reload();
+            return false;
         }
     }
 }
