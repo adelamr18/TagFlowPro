@@ -1,6 +1,4 @@
-
-import { Link } from "react-router-dom";
-// reactstrap components
+import { Link, useNavigate } from "react-router-dom";
 import {
   UncontrolledCollapse,
   NavbarBrand,
@@ -12,8 +10,19 @@ import {
   Row,
   Col,
 } from "reactstrap";
+import { useAuth } from "context/AuthContext";
 
 const AdminNavbar = () => {
+  const { setToken } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setToken(null);
+    localStorage.removeItem("authToken");
+
+    navigate("/auth/login");
+  };
+
   return (
     <>
       <Navbar className="navbar-top navbar-horizontal navbar-dark" expand="md">
@@ -54,16 +63,6 @@ const AdminNavbar = () => {
                 </NavLink>
               </NavItem>
               <NavItem>
-                <NavLink
-                  className="nav-link-icon"
-                  to="/auth/register"
-                  tag={Link}
-                >
-                  <i className="ni ni-circle-08" />
-                  <span className="nav-link-inner--text">Register</span>
-                </NavLink>
-              </NavItem>
-              <NavItem>
                 <NavLink className="nav-link-icon" to="/auth/login" tag={Link}>
                   <i className="ni ni-key-25" />
                   <span className="nav-link-inner--text">Login</span>
@@ -77,6 +76,16 @@ const AdminNavbar = () => {
                 >
                   <i className="ni ni-single-02" />
                   <span className="nav-link-inner--text">Profile</span>
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  className="nav-link-icon"
+                  onClick={handleLogout}
+                  style={{ cursor: "pointer" }}
+                >
+                  <i className="ni ni-user-run" />
+                  <span className="nav-link-inner--text">Logout</span>
                 </NavLink>
               </NavItem>
             </Nav>

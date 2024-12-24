@@ -19,6 +19,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer(); // Required for Swagger to discover endpoints
 builder.Services.AddSwaggerGen();  // Enable Swagger generation
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -28,9 +39,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/", () => Results.Redirect("/swagger"));
-
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
+
+app.MapGet("/", () => Results.Redirect("/swagger"));
 app.MapControllers();
 
 app.Run();

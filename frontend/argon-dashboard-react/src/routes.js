@@ -1,46 +1,34 @@
+import React from "react";
 import Index from "views/Index.js";
 import Profile from "views/examples/Profile.js";
-import Maps from "views/examples/Maps.js";
-import Register from "views/examples/Register.js";
 import Login from "views/examples/Login.js";
 import Tables from "views/examples/Tables.js";
 import Icons from "views/examples/Icons.js";
 import ForgetPassword from "views/examples/ForgetPassword.js";
+import ProtectedRoute from "components/Utils/ProtectedRoute";
+import Logout from "views/examples/Logout.js"; // Import the Logout component
 
 var routes = [
   {
     path: "/index",
     name: "Dashboard",
     icon: "ni ni-tv-2 text-primary",
-    component: <Index />,
+    component: (
+      <ProtectedRoute>
+        <Index />
+      </ProtectedRoute>
+    ),
     layout: "/admin",
   },
   {
     path: "/icons",
     name: "Icons",
     icon: "ni ni-planet text-blue",
-    component: <Icons />,
-    layout: "/admin",
-  },
-  {
-    path: "/maps",
-    name: "Maps",
-    icon: "ni ni-pin-3 text-orange",
-    component: <Maps />,
-    layout: "/admin",
-  },
-  {
-    path: "/user-profile",
-    name: "User Profile",
-    icon: "ni ni-single-02 text-yellow",
-    component: <Profile />,
-    layout: "/admin",
-  },
-  {
-    path: "/tables",
-    name: "Tables",
-    icon: "ni ni-bullet-list-67 text-red",
-    component: <Tables />,
+    component: (
+      <ProtectedRoute>
+        <Icons />
+      </ProtectedRoute>
+    ),
     layout: "/admin",
   },
   {
@@ -51,11 +39,33 @@ var routes = [
     layout: "/auth",
   },
   {
-    path: "/register",
-    name: "Register",
-    icon: "ni ni-circle-08 text-pink",
-    component: <Register />,
+    path: "/user-profile",
+    name: "User Profile",
+    icon: "ni ni-single-02 text-yellow",
+    component: (
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    ),
+    layout: "/admin",
+  },
+  {
+    path: "/logout",
+    name: "Logout",
+    component: <Logout />,
     layout: "/auth",
+    icon: "ni ni-user-run",
+  },
+  {
+    path: "/tables",
+    name: "Tables",
+    icon: "ni ni-bullet-list-67 text-red",
+    component: (
+      <ProtectedRoute>
+        <Tables />
+      </ProtectedRoute>
+    ),
+    layout: "/admin",
   },
   {
     path: "/forget-password",
@@ -64,4 +74,5 @@ var routes = [
     layout: "/auth",
   },
 ];
+
 export default routes;

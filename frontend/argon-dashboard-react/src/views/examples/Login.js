@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Button,
   Card,
@@ -12,19 +13,22 @@ import {
   Col,
   FormFeedback,
 } from "reactstrap";
-import React, { useState } from "react";
-import "./Login.css";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "context/AuthContext";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { login } from "services/authService";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { setToken } = useAuth();
   const [email, setEmail] = useState("");
   const [isEmailInvalid, setIsInvalidEmail] = useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
-
   const [password, setPassword] = useState("");
   const [isPasswordInvalid, setIsInvalidPassword] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+  const [rememberMe, setRememberMe] = useState(false); // New state for "Remember Me"
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex =
@@ -64,9 +68,8 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (email.trim() === "") {
       setIsInvalidEmail(true);
       setEmailErrorMessage("Email is required.");
@@ -86,7 +89,22 @@ const Login = () => {
     }
 
     if (!isEmailInvalid && !isPasswordInvalid) {
-      // TODOAdel: Call BE API and pass over the email and the password
+      const result = await login(email, password);
+
+      if (result.success) {
+        // Store token in localStorage or sessionStorage based on "Remember Me"
+        if (rememberMe) {
+          localStorage.setItem("authToken", result.token);
+        } else {
+          sessionStorage.setItem("authToken", result.token);
+        }
+
+        setToken(result.token);
+        toast.success(result.message);
+        navigate("/dashboard");
+      } else {
+        toast.error(result.message);
+      }
     }
   };
 
@@ -96,7 +114,7 @@ const Login = () => {
         <Card className="bg-secondary shadow border-0">
           <CardBody className="px-lg-5 py-lg-5">
             <div className="text-center text-muted mb-4">
-              <large>Sign in</large>
+              <span>Login</span>
             </div>
             <Form role="form" onSubmit={handleSubmit}>
               <FormGroup>
@@ -147,6 +165,8 @@ const Login = () => {
                   className="custom-control-input"
                   id="customCheckLogin"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)} // Handle checkbox state
                 />
                 <label
                   className="custom-control-label"
@@ -157,7 +177,7 @@ const Login = () => {
               </div>
               <div className="text-center">
                 <Button className="my-4" color="primary" type="submit">
-                  Sign in
+                  Login
                 </Button>
               </div>
             </Form>
