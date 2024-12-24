@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 // node.js library that concatenates classes (strings)
 import classnames from "classnames";
@@ -29,7 +28,6 @@ import {
   chartExample1,
   chartExample2,
 } from "variables/charts.js";
-
 import Header from "components/Headers/Header.js";
 
 const Index = (props) => {
