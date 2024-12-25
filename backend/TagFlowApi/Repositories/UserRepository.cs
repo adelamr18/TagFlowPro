@@ -7,7 +7,7 @@ namespace TagFlowApi.Repositories
     public class UserRepository
     {
         private readonly DataContext _context;
-        private static int ADMIN_ROLE_ID = 1;
+        private static readonly int ADMIN_ROLE_ID = 1;
         
         public UserRepository(DataContext context)
         {
@@ -35,6 +35,7 @@ namespace TagFlowApi.Repositories
                     if (user.RoleId == ADMIN_ROLE_ID)
                     {
                         var admin = _context.Admins.SingleOrDefault(a => a.Email == email);
+                        
                         if (admin is not null)
                         {
                             admin.PasswordHash = newPasswordHash ?? "";

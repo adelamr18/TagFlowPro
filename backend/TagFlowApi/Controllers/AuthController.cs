@@ -8,16 +8,10 @@ namespace TagFlowApi.Controllers
 {
     [ApiController]
     [Route("api/auth")]
-    public class AuthController : ControllerBase
+    public class AuthController(UserRepository userRepository, JwtService jwtService) : ControllerBase
     {
-        private readonly UserRepository _userRepository;
-        private readonly JwtService _jwtService;
-
-        public AuthController(UserRepository userRepository, JwtService jwtService)
-        {
-            _userRepository = userRepository;
-            _jwtService = jwtService;
-        }
+        private readonly UserRepository _userRepository = userRepository;
+        private readonly JwtService _jwtService = jwtService;
 
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequestDto request)
