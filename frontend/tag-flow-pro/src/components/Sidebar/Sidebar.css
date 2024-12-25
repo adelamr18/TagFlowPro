@@ -1,0 +1,31 @@
+.navbar-brand-title {
+  color: #61dafb;
+  font-weight: bold;
+  margin: 0;
+  margin-left: 10px;
+  font-size: 20px;
+}
+
+.collapse-brand {
+  display: flex;
+  align-items: center;
+}
+
+.collapse-brand-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.collapse-brand-img {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.collapse-brand-text {
+  color: #61dafb; /* React logo blue */
+  font-weight: bold;
+  margin: 0;
+  font-size: 20px;
+  text-transform: none;
+}

@@ -1,22 +1,15 @@
 /*eslint-disable*/
 import { useState } from "react";
 import { NavLink as NavLinkRRD, Link } from "react-router-dom";
-// nodejs library to set properties for components
 import { PropTypes } from "prop-types";
+import "./Sidebar.css";
 
-// reactstrap components
 import {
-  Button,
-  Card,
-  CardHeader,
-  CardBody,
-  CardTitle,
   Collapse,
   DropdownMenu,
   DropdownItem,
   UncontrolledDropdown,
   DropdownToggle,
-  FormGroup,
   Form,
   Input,
   InputGroupAddon,
@@ -28,8 +21,6 @@ import {
   NavItem,
   NavLink,
   Nav,
-  Progress,
-  Table,
   Container,
   Row,
   Col,
@@ -39,19 +30,12 @@ var ps;
 
 const Sidebar = (props) => {
   const [collapseOpen, setCollapseOpen] = useState();
-  // verifies if routeName is the one active (in browser input)
-  const activeRoute = (routeName) => {
-    return props.location.pathname.indexOf(routeName) > -1 ? "active" : "";
-  };
-  // toggles collapse between opened and closed (true/false)
   const toggleCollapse = () => {
     setCollapseOpen((data) => !data);
   };
-  // closes the collapse
   const closeCollapse = () => {
     setCollapseOpen(false);
   };
-  // creates the links that appear in the left menu / Sidebar
   const createLinks = (routes) => {
     return routes.map((prop, key) => {
       return (
@@ -69,7 +53,7 @@ const Sidebar = (props) => {
     });
   };
 
-  const { bgColor, routes, logo } = props;
+  const { routes, logo } = props;
   const filteredRoutes = routes.filter(
     (route) => route.path !== "/forget-password"
   );
@@ -94,7 +78,6 @@ const Sidebar = (props) => {
       id="sidenav-main"
     >
       <Container fluid>
-        {/* Toggler */}
         <button
           className="navbar-toggler"
           type="button"
@@ -102,44 +85,21 @@ const Sidebar = (props) => {
         >
           <span className="navbar-toggler-icon" />
         </button>
-        {/* Brand */}
         {logo ? (
-          <NavbarBrand className="pt-0" {...navbarBrandProps}>
+          <NavbarBrand
+            className="pt-0 d-flex align-items-center"
+            {...navbarBrandProps}
+          >
             <img
               alt={logo.imgAlt}
               className="navbar-brand-img"
               src={logo.imgSrc}
             />
+            <h3 className="navbar-brand-title">TagFlowPro</h3>
           </NavbarBrand>
         ) : null}
-        {/* User */}
         <Nav className="align-items-center d-md-none">
           <UncontrolledDropdown nav>
-            <DropdownToggle nav className="nav-link-icon">
-              <i className="ni ni-bell-55" />
-            </DropdownToggle>
-            <DropdownMenu
-              aria-labelledby="navbar-default_dropdown_1"
-              className="dropdown-menu-arrow"
-              right
-            >
-              <DropdownItem>Action</DropdownItem>
-              <DropdownItem>Another action</DropdownItem>
-              <DropdownItem divider />
-              <DropdownItem>Something else here</DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
-          <UncontrolledDropdown nav>
-            <DropdownToggle nav>
-              <Media className="align-items-center">
-                <span className="avatar avatar-sm rounded-circle">
-                  <img
-                    alt="..."
-                    src={require("../../assets/img/theme/team-1-800x800.jpg")}
-                  />
-                </span>
-              </Media>
-            </DropdownToggle>
             <DropdownMenu className="dropdown-menu-arrow" right>
               <DropdownItem className="noti-title" header tag="div">
                 <h6 className="text-overflow m-0">Welcome!</h6>
@@ -168,20 +128,31 @@ const Sidebar = (props) => {
             </DropdownMenu>
           </UncontrolledDropdown>
         </Nav>
-        {/* Collapse */}
         <Collapse navbar isOpen={collapseOpen}>
-          {/* Collapse header */}
           <div className="navbar-collapse-header d-md-none">
             <Row>
               {logo ? (
-                <Col className="collapse-brand" xs="6">
+                <Col
+                  className="collapse-brand d-flex align-items-center"
+                  xs="6"
+                >
                   {logo.innerLink ? (
-                    <Link to={logo.innerLink}>
-                      <img alt={logo.imgAlt} src={logo.imgSrc} />
+                    <Link to={logo.innerLink} className="collapse-brand-link">
+                      <img
+                        alt={logo.imgAlt}
+                        src={logo.imgSrc}
+                        className="collapse-brand-img"
+                      />
+                      <h3 className="collapse-brand-text">TagFlowPro</h3>
                     </Link>
                   ) : (
-                    <a href={logo.outterLink}>
-                      <img alt={logo.imgAlt} src={logo.imgSrc} />
+                    <a href={logo.outterLink} className="collapse-brand-link">
+                      <img
+                        alt={logo.imgAlt}
+                        src={logo.imgSrc}
+                        className="collapse-brand-img"
+                      />
+                      <h3 className="collapse-brand-text">TagFlowPro</h3>
                     </a>
                   )}
                 </Col>
@@ -198,25 +169,8 @@ const Sidebar = (props) => {
               </Col>
             </Row>
           </div>
-          {/* Form */}
-          <Form className="mt-4 mb-3 d-md-none">
-            <InputGroup className="input-group-rounded input-group-merge">
-              <Input
-                aria-label="Search"
-                className="form-control-rounded form-control-prepended"
-                placeholder="Search"
-                type="search"
-              />
-              <InputGroupAddon addonType="prepend">
-                <InputGroupText>
-                  <span className="fa fa-search" />
-                </InputGroupText>
-              </InputGroupAddon>
-            </InputGroup>
-          </Form>
-          {/* Navigation */}
+          <Form className="mt-4 mb-3 d-md-none"></Form>
           <Nav navbar>{createLinks(filteredRoutes)}</Nav>
-          {/* Navigation */}
         </Collapse>
       </Container>
     </Navbar>
@@ -228,18 +182,11 @@ Sidebar.defaultProps = {
 };
 
 Sidebar.propTypes = {
-  // links that will be displayed inside the component
   routes: PropTypes.arrayOf(PropTypes.object),
   logo: PropTypes.shape({
-    // innerLink is for links that will direct the user within the app
-    // it will be rendered as <Link to="...">...</Link> tag
     innerLink: PropTypes.string,
-    // outterLink is for links that will direct the user outside the app
-    // it will be rendered as simple <a href="...">...</a> tag
     outterLink: PropTypes.string,
-    // the image src of the logo
     imgSrc: PropTypes.string.isRequired,
-    // the alt for the img
     imgAlt: PropTypes.string.isRequired,
   }),
 };

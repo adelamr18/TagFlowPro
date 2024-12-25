@@ -1,0 +1,42 @@
+.navbar-brand-custom {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand-img-modified {
+  filter: brightness(0) invert(1);
+  height: 40px;
+  margin-right: 10px;
+}
+
+.navbar-brand-text {
+  color: white;
+  font-weight: bold;
+  margin: 0;
+  font-size: 20px;
+  text-transform: none;
+}
+
+.collapse-brand {
+  display: flex;
+  align-items: center;
+}
+
+.collapse-brand-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.collapse-brand-img {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.collapse-brand-text {
+  color: #61dafb;
+  font-weight: bold;
+  margin: 0;
+  font-size: 20px;
+  text-transform: none;
+}

@@ -11,6 +11,7 @@ import {
   Col,
 } from "reactstrap";
 import { useAuth } from "context/AuthContext";
+import "./AuthNavbar.css";
 
 const AdminNavbar = () => {
   const { setToken } = useAuth();
@@ -27,24 +28,32 @@ const AdminNavbar = () => {
     <>
       <Navbar className="navbar-top navbar-horizontal navbar-dark" expand="md">
         <Container className="px-4">
-          <NavbarBrand to="/" tag={Link}>
+          <NavbarBrand to="/" tag={Link} className="navbar-brand-custom">
             <img
-              alt="..."
-              src={require("../../assets/img/brand/argon-react-white.png")}
+              alt="React Logo"
+              src={require("../../assets/img/brand/react-icon.png")}
+              className="navbar-brand-img-modified"
             />
+            <h4 className="navbar-brand-text">TagFlowPro</h4>
           </NavbarBrand>
+
           <button className="navbar-toggler" id="navbar-collapse-main">
             <span className="navbar-toggler-icon" />
           </button>
           <UncontrolledCollapse navbar toggler="#navbar-collapse-main">
             <div className="navbar-collapse-header d-md-none">
               <Row>
-                <Col className="collapse-brand" xs="6">
-                  <Link to="/">
+                <Col
+                  className="collapse-brand d-flex align-items-center"
+                  xs="6"
+                >
+                  <Link to="/" className="collapse-brand-link">
                     <img
-                      alt="..."
-                      src={require("../../assets/img/brand/argon-react.png")}
+                      alt="React Logo"
+                      src={require("../../assets/img/brand/react-icon.png")}
+                      className="collapse-brand-img"
                     />
+                    <h3 className="collapse-brand-text">TagFlowPro</h3>
                   </Link>
                 </Col>
                 <Col className="collapse-close" xs="6">

@@ -26,7 +26,7 @@ const authService = {
 
   forgetPassword: async (email, newPassword) => {
     try {
-      const response = await axios.post(`${API_URL}/forget-password`, {
+      const response = await axios.post(`${MAIN_URL}/forget-password`, {
         email,
         newPassword,
       });
