@@ -14,10 +14,11 @@ import {
 import React, { useState } from "react";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
-import authService from "services/authService";
 import { toast } from "react-toastify";
+import { useAuth } from "context/AuthContext";
 
 const ForgetPassword = () => {
+  const { forgetPassword } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [isEmailInvalid, setIsInvalidEmail] = useState(false);
@@ -88,7 +89,7 @@ const ForgetPassword = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setIsInvalidEmail(false);
@@ -107,7 +108,6 @@ const ForgetPassword = () => {
       isValid = false;
     }
 
-    // Validate first password
     if (firstPassword.trim() === "") {
       setIsInvalidFirstPassword(true);
       setFirstPasswordErrorMessage("New password is required.");
@@ -131,19 +131,17 @@ const ForgetPassword = () => {
     }
 
     if (isValid) {
-      authService
-        .forgetPassword(email, firstPassword)
-        .then((response) => {
-          if (response.success) {
-            toast.success("Password has been changed");
-            navigate("/auth/login");
-          } else {
-            toast.error(response.message);
-          }
-        })
-        .catch(() => {
-          toast.error("An unexpected error occurred. Please try again.");
-        });
+      if (!email.trim() || !firstPassword.trim()) {
+        toast.error("Email and password are required.");
+        return;
+      }
+
+      const success = await forgetPassword(email, firstPassword);
+      if (success) {
+        setEmail("");
+        setFirstPassword("");
+        navigate("/auth/login");
+      }
     }
   };
 

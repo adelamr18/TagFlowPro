@@ -1,9 +1,12 @@
 import React, { createContext, useState, useEffect } from "react";
+import authService from "services/authService";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext({
   token: null,
   setToken: () => {},
   logout: () => {},
+  forgetPassword: () => {},
 });
 
 export const AuthProvider = ({ children }) => {
@@ -21,8 +24,23 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
+  const forgetPassword = async (email, newPassword) => {
+    const { success, message } = await authService.forgetPassword(
+      email,
+      newPassword
+    );
+
+    if (success) {
+      toast.success(message || "Password reset successfully!");
+    } else {
+      toast.error(message || "Failed to reset password. Please try again.");
+    }
+
+    return success;
+  };
+
   return (
-    <AuthContext.Provider value={{ token, setToken, logout }}>
+    <AuthContext.Provider value={{ token, setToken, logout, forgetPassword }}>
       {children}
     </AuthContext.Provider>
   );

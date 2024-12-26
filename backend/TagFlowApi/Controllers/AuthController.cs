@@ -20,42 +20,53 @@ namespace TagFlowApi.Controllers
             {
                 return BadRequest(new { message = "Email and password are required" });
             }
-            
-            var user = _userRepository.GetUserByEmail(request.Email);
 
-            if (user == null || !user.CheckPassword(request.Password))
+            var admin = _userRepository.GetAdminByEmail(request.Email);
+            if (admin != null)
             {
-                return Unauthorized(new { message = "Invalid email or password" });
+                if (!admin.CheckPassword(request.Password))
+                {
+                    return Unauthorized(new { message = "Invalid email or password" });
+                }
+
+                var token = _jwtService.GenerateToken(admin.AdminId);
+                return Ok(new { message = "Login successful", token, userType = "Admin" });
             }
 
-            var token = _jwtService.GenerateToken(user.UserId);
+            var user = _userRepository.GetUserByEmail(request.Email);
+            if (user != null)
+            {
+                if (!user.CheckPassword(request.Password))
+                {
+                    return Unauthorized(new { message = "Invalid email or password" });
+                }
 
-            return Ok(new { message = "Login successful", token });
+                var token = _jwtService.GenerateToken(user.UserId);
+                return Ok(new { message = "Login successful", token, userType = "User" });
+            }
+
+            // If the email is not found in both tables
+            return Unauthorized(new { message = "Invalid email or password" });
         }
 
         [HttpPost("forget-password")]
         public IActionResult ForgetPassword([FromBody] ForgetPasswordDto request)
         {
-            string email = request.Email;
-            
-            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.NewPassword)) {
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.NewPassword))
+            {
                 return BadRequest(new { message = "Email and new password are required" });
             }
-            
-            var user = _userRepository.GetUserByEmail(request.Email);
 
-            if (user == null) {
-                return Unauthorized(new { message = "Email cant be found. Please check your email address and try again." });
-            }
-            
             string hashedPassword = Helpers.HashPassword(request.NewPassword);
+
             bool updateSuccessful = _userRepository.UpdatePasswordHash(request.Email, hashedPassword);
 
-            if(!updateSuccessful) {
-                 return StatusCode(500, new { message = "An error occurred while updating the password." });
+            if (!updateSuccessful)
+            {
+               return Unauthorized(new { message = "You cannot use an already existing password. Please try a different one." });
             }
 
-           return Ok(new { message = "Password updated successfully. Please use your new password to log in." });
+            return Ok(new { message = "Password updated successfully. Please use your new password to log in." });
         }
     }
 }

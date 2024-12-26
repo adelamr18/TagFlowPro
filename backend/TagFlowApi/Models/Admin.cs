@@ -13,5 +13,11 @@ namespace TagFlowApi.Models
         public ICollection<User> Users { get; set; } = [];
         public ICollection<Tag> Tags { get; set; } = [];
         public ICollection<TagValue> TagValues { get; set; } = [];
+
+        public bool CheckPassword(string password)
+        {
+            var hashedPassword = Utils.Helpers.HashPassword(password);
+            return hashedPassword == PasswordHash;
+        }
     }
 }

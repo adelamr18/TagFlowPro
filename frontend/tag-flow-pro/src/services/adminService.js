@@ -13,6 +13,23 @@ const adminService = {
       throw error;
     }
   },
+
+  updateRole: async (roleId, newRoleName) => {
+    try {
+      const response = await axios.put(`${MAIN_URL}/update-role`, {
+        roleId,
+        newRoleName,
+      });
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred. Please try again.",
+      };
+    }
+  },
 };
 
 export default adminService;

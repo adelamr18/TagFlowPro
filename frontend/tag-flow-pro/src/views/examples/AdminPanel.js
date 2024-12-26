@@ -1,35 +1,42 @@
-// reactstrap components
 import {
   Badge,
   Card,
   CardHeader,
   CardFooter,
-  DropdownMenu,
-  DropdownItem,
-  UncontrolledDropdown,
-  DropdownToggle,
-  Media,
-  Pagination,
-  PaginationItem,
-  PaginationLink,
-  Progress,
   Table,
   Container,
   Row,
-  UncontrolledTooltip,
   Button,
+  Pagination,
+  PaginationItem,
+  PaginationLink,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Input,
+  Media,
+  UncontrolledTooltip,
+  UncontrolledDropdown,
+  Progress,
+  DropdownToggle,
+  DropdownMenu,
+  DropdownItem,
 } from "reactstrap";
 import Header from "components/Headers/Header.js";
-import React from "react";
+import React, { useState } from "react";
 import { useAdmin } from "context/AdminContext";
+import { toast } from "react-toastify";
 
 const AdminPanel = () => {
-  const { roles } = useAdmin();
+  const { roles, updateRole } = useAdmin();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [modal, setModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [updatedRoleName, setUpdatedRoleName] = useState("");
 
-  const [currentPage, setCurrentPage] = React.useState(1);
   const rolesPerPage = 5;
 
-  // Pagination logic
   const totalPages = Math.ceil(roles.length / rolesPerPage);
   const indexOfLastRole = currentPage * rolesPerPage;
   const indexOfFirstRole = indexOfLastRole - rolesPerPage;
@@ -47,6 +54,27 @@ const AdminPanel = () => {
         return "View Status Only";
       default:
         return "No Permissions";
+    }
+  };
+
+  const toggleModal = () => setModal(!modal);
+
+  const openEditModal = (role) => {
+    setSelectedRole(role);
+    setUpdatedRoleName(role.roleName);
+    toggleModal();
+  };
+
+  const handleSave = async () => {
+    if (!updatedRoleName.trim()) {
+      toast.error("Role name cannot be empty.");
+      return;
+    }
+
+    const success = await updateRole(selectedRole.roleId, updatedRoleName);
+
+    if (success) {
+      toggleModal();
     }
   };
 
@@ -76,7 +104,12 @@ const AdminPanel = () => {
                       <td>{role.createdBy}</td>
                       <td>{getPermissions(role.roleId)}</td>
                       <td>
-                        <Button color="primary">Edit Role</Button>
+                        <Button
+                          color="primary"
+                          onClick={() => openEditModal(role)}
+                        >
+                          Edit Role
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -135,6 +168,47 @@ const AdminPanel = () => {
                   </Pagination>
                 </nav>
               </CardFooter>
+            </Card>
+          </div>
+        </Row>
+        <Modal isOpen={modal} toggle={toggleModal}>
+          <ModalHeader toggle={toggleModal}>Edit Role</ModalHeader>
+          <ModalBody>
+            <label htmlFor="roleName">Role Name</label>
+            <Input
+              id="roleName"
+              value={updatedRoleName}
+              onChange={(e) => setUpdatedRoleName(e.target.value)}
+              placeholder="Enter role name"
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onClick={handleSave}>
+              Save
+            </Button>
+            <Button color="secondary" onClick={toggleModal}>
+              Close
+            </Button>
+          </ModalFooter>
+        </Modal>
+
+        <Row className="mt-5">
+          <div className="col">
+            <Card className="shadow">
+              <CardHeader className="border-0">
+                <h3 className="mb-0">Tags Management</h3>
+              </CardHeader>
+              <Table className="align-items-center table-flush" responsive>
+                <thead className="thead-light">
+                  <tr>
+                    <th scope="col">Tag Name</th>
+                    <th scope="col">Values</th>
+                    <th scope="col">Assigned Users</th>
+                    <th scope="col">Created By</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+              </Table>
             </Card>
           </div>
         </Row>
