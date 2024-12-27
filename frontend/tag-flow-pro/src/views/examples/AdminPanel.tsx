@@ -15,17 +15,17 @@ import {
   ModalFooter,
   Input,
 } from "reactstrap";
-import Header from "components/Headers/Header.js";
+import Header from "components/Headers/Header.tsx";
 import React, { useState } from "react";
-import { useAdmin } from "context/AdminContext";
+import { useAdmin } from "context/AdminContext.tsx";
 import { toast } from "react-toastify";
 
 const AdminPanel = () => {
-  const { roles, updateRole, tags } = useAdmin();
+  const { roles, updateRole, tags, updateTag } = useAdmin();
   const [currentRolePage, setCurrentRolePage] = useState(1);
   const [currentEditTagPage, setCurrentEditTagPage] = useState(1);
   const [roleModal, setRoleModal] = useState(false);
-  const [tagModal, setTagModal] = useState(false);
+  const [tagValuesModal, setTagValuesModal] = useState(false);
   const [tagEditModal, setTagEditModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [updatedRoleName, setUpdatedRoleName] = useState("");
@@ -41,7 +41,7 @@ const AdminPanel = () => {
   const [editedTagName, setEditedTagName] = useState("");
   const [editedTagDescription, setEditedTagDescription] = useState("");
   const [editedTagValues, setEditedTagValues] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm] = useState("");
   const valuesPerPage = 5;
 
   const paginateRolesTable = (pageNumber) => setCurrentRolePage(pageNumber);
@@ -51,7 +51,7 @@ const AdminPanel = () => {
     setEditedTagName(tag.tagName || "Unnamed Tag");
     setEditedTagDescription(tag.description || "No description provided.");
     setEditedTagValues([...tag.tagValues]);
-    setCurrentEditTagPage(1); // Reset pagination
+    setCurrentEditTagPage(1);
     toggleEditTagModal();
   };
 
@@ -82,13 +82,10 @@ const AdminPanel = () => {
       description: editedTagDescription,
       tagValues: editedTagValues,
     };
-    const success = true;
+    const success = await updateTag(updatedTag);
 
     if (success) {
       toggleEditTagModal();
-      toast.success("Tag updated successfully!");
-    } else {
-      toast.error("Failed to update tag.");
     }
   };
 
@@ -113,7 +110,7 @@ const AdminPanel = () => {
   };
 
   const toggleRoleModal = () => setRoleModal(!roleModal);
-  const toggleTagModal = () => setTagModal(!tagModal);
+  const toggleTagValuesModal = () => setTagValuesModal(!tagValuesModal);
   const toggleEditTagModal = () => setTagEditModal(!tagEditModal);
 
   const openEditRoleModal = (role) => {
@@ -122,9 +119,9 @@ const AdminPanel = () => {
     toggleRoleModal();
   };
 
-  const openTagModal = (tag) => {
+  const openTagValuesModal = (tag) => {
     setUpdatedTagValues(tag.tagValues.join("\n"));
-    toggleTagModal();
+    toggleTagValuesModal();
   };
 
   const handleSaveRole = async () => {
@@ -136,11 +133,10 @@ const AdminPanel = () => {
     const success = await updateRole(selectedRole.roleId, updatedRoleName);
 
     if (success) {
-      toggleRoleModal(); // Close role modal
+      toggleRoleModal();
     }
   };
 
-  // Pagination Helpers
   const filteredValues = searchTerm
     ? editedTagValues.filter((value) =>
         value.toLowerCase().includes(searchTerm.toLowerCase())
@@ -358,8 +354,8 @@ const AdminPanel = () => {
           </ModalFooter>
         </Modal>
 
-        <Modal isOpen={tagModal} toggle={toggleTagModal}>
-          <ModalHeader toggle={toggleTagModal}>Tag Values</ModalHeader>
+        <Modal isOpen={tagValuesModal} toggle={toggleTagValuesModal}>
+          <ModalHeader toggle={toggleTagValuesModal}>Tag Values</ModalHeader>
           <ModalBody>
             <div
               id="tagValues"
@@ -373,7 +369,7 @@ const AdminPanel = () => {
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button color="secondary" onClick={toggleTagModal}>
+            <Button color="secondary" onClick={toggleTagValuesModal}>
               Close
             </Button>
           </ModalFooter>
@@ -389,7 +385,7 @@ const AdminPanel = () => {
                 <thead className="thead-light">
                   <tr>
                     <th scope="col">Tag Name</th>
-                    <th scope="col">Values</th>
+                    <th scope="col">Tag Values</th>
                     <th scope="col">Assigned Users</th>
                     <th scope="col">Created By UserName</th>
                     <th scope="col">Created By Email</th>
@@ -420,7 +416,7 @@ const AdminPanel = () => {
                                     color: "blue",
                                     textDecoration: "underline",
                                   }}
-                                  onClick={() => openTagModal(tag)}
+                                  onClick={() => openTagValuesModal(tag)}
                                 >
                                   +{tagValues.length - 3} more
                                 </Button>

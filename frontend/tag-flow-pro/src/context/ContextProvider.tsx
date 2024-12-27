@@ -1,6 +1,5 @@
-import React from "react";
-import { AuthProvider } from "./AuthContext";
-import { AdminProvider } from "./AdminContext";
+import { AuthProvider } from "./AuthContext.tsx";
+import { AdminProvider } from "./AdminContext.tsx";
 
 const ContextProvider = ({ children }) => {
   return (

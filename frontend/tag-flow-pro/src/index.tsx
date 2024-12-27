@@ -6,21 +6,21 @@ import "assets/plugins/nucleo/css/nucleo.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "assets/scss/tag-flow-pro.scss";
 
-import AdminLayout from "layouts/Admin.js";
-import AuthLayout from "layouts/Auth.js";
-import ContextProvider from "./context/ContextProvider";
+import AdminLayout from "layouts/Admin.tsx";
+import AuthLayout from "layouts/Auth.tsx";
+import ContextProvider from "./context/ContextProvider.tsx";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
-  <ContextProvider>
+  <ContextProvider children={undefined}>
     <BrowserRouter>
       <Routes>
         <Route path="/admin/*" element={<AdminLayout />} />
         <Route path="/auth/*" element={<AuthLayout />} />
         <Route path="*" element={<Navigate to="/admin/index" replace />} />
       </Routes>
-      <ToastContainer />
+      <ToastContainer aria-label={undefined} />
     </BrowserRouter>
   </ContextProvider>
 );

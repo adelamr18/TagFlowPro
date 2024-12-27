@@ -27,8 +27,8 @@ import {
   parseOptions,
   chartExample1,
   chartExample2,
-} from "variables/charts.js";
-import Header from "components/Headers/Header.js";
+} from "variables/charts";
+import Header from "components/Headers/Header.tsx";
 
 const Index = (props) => {
   const [activeNav, setActiveNav] = useState(1);

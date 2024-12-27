@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "baseUrl": "src",
+    "paths": {
+      "context/*": ["context/*"]
+    },
+    "jsx": "react-jsx"
+  },
+  "exclude": ["node_modules"]
+}

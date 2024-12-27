@@ -10,8 +10,8 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import { useAuth } from "context/AuthContext";
 import "./AuthNavbar.css";
+import { useAuth } from "context/AuthContext";
 
 const AdminNavbar = () => {
   const { setToken } = useAuth();

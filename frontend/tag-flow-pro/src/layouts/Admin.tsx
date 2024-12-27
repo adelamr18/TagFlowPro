@@ -1,11 +1,9 @@
 import React from "react";
 import { useLocation, Route, Routes, Navigate } from "react-router-dom";
-// reactstrap components
 import { Container } from "reactstrap";
-// core components
-import AdminNavbar from "components/Navbars/AdminNavbar.js";
-import AdminFooter from "components/Footers/AdminFooter.js";
-import Sidebar from "components/Sidebar/Sidebar.js";
+import AdminNavbar from "components/Navbars/AdminNavbar.tsx";
+import AdminFooter from "components/Footers/AdminFooter.tsx";
+import Sidebar from "components/Sidebar/Sidebar.tsx";
 
 import routes from "routes.js";
 
@@ -23,7 +21,8 @@ const Admin = (props) => {
     return routes.map((prop, key) => {
       if (prop.layout === "/admin" || prop.layout === "/auth/forgot-password") {
         return (
-          <Route path={prop.path} element={prop.component} key={key} exact />
+          // Remove key from Route component itself, key is handled in map() wrapper
+          <Route path={prop.path} element={prop.component} />
         );
       } else {
         return null;

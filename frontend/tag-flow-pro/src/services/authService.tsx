@@ -1,10 +1,21 @@
 import axios from "axios";
 import { API_URL } from "shared/consts";
 
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  token?: string; // Token will be present only if login is successful
+}
+
+interface AuthResponse {
+  success: boolean;
+  message: string;
+}
+
 const MAIN_URL = `${API_URL}/auth`;
 
 const authService = {
-  login: async (email, password) => {
+  login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
       const response = await axios.post(`${MAIN_URL}/login`, {
         email,
@@ -24,7 +35,10 @@ const authService = {
     }
   },
 
-  forgetPassword: async (email, newPassword) => {
+  forgetPassword: async (
+    email: string,
+    newPassword: string
+  ): Promise<AuthResponse> => {
     try {
       const response = await axios.post(`${MAIN_URL}/forget-password`, {
         email,

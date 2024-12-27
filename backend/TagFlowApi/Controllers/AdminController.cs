@@ -53,5 +53,23 @@ namespace TagFlowApi.Controllers
 
             return Ok(new { tags });
         }
+
+        [HttpPut("update-tag")]
+        public async Task<IActionResult> UpdateTag([FromBody] TagUpdateDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.TagName))
+            {
+                return BadRequest("Invalid input data.");
+            }
+
+            var success = await _adminRepository.UpdateTagAsync(dto);
+
+            if (!success)
+            {
+                return StatusCode(500, "An error occurred while updating the tag.");
+            }
+
+            return Ok(new { message = "Tag updated successfully." });
+        }
     }
 }
