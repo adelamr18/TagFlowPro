@@ -6,10 +6,13 @@ const AdminContext = createContext({
   roles: [],
   fetchRoles: () => {},
   updateRole: () => {},
+  tags: [],
+  fetchAllTags: () => {},
 });
 
 export const AdminProvider = ({ children }) => {
   const [roles, setRoles] = useState([]);
+  const [tags, setTags] = useState([]);
 
   const fetchRoles = async () => {
     try {
@@ -41,12 +44,25 @@ export const AdminProvider = ({ children }) => {
     return success;
   };
 
+  const fetchAllTags = async () => {
+    try {
+      const data = await adminService.getAllTags();
+      console.log("Fetched Tags:", data);
+      setTags(data);
+    } catch (error) {
+      console.error("Error fetching tags:", error);
+    }
+  };
+
   useEffect(() => {
     fetchRoles();
+    fetchAllTags();
   }, []);
 
   return (
-    <AdminContext.Provider value={{ roles, fetchRoles, setRoles, updateRole }}>
+    <AdminContext.Provider
+      value={{ roles, fetchRoles, setRoles, updateRole, fetchAllTags, tags }}
+    >
       {children}
     </AdminContext.Provider>
   );

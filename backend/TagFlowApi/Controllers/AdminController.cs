@@ -6,14 +6,9 @@ namespace TagFlowApi.Controllers
 {
     [ApiController]
     [Route("api/admin")]
-    public class AdminController : ControllerBase
+    public class AdminController(AdminRepository adminRepository) : ControllerBase
     {
-        private readonly AdminRepository _adminRepository;
-
-        public AdminController(AdminRepository adminRepository)
-        {
-            _adminRepository = adminRepository;
-        }
+        private readonly AdminRepository _adminRepository = adminRepository;
 
         [HttpGet("get-all-roles")]
         public IActionResult GetAllRoles()
@@ -43,7 +38,20 @@ namespace TagFlowApi.Controllers
                 return StatusCode(500, "An error occurred while updating the role name.");
             }
 
-           return Ok(new { message = "Role name updated successfully." });
+            return Ok(new { message = "Role name updated successfully." });
+        }
+
+        [HttpGet("get-all-tags")]
+        public async Task<IActionResult> GetAllTags()
+        {
+            var tags = await _adminRepository.GetAllTagsWithDetailsAsync();
+
+            if (!tags.Any())
+            {
+                return NotFound(new { message = "No tags found." });
+            }
+
+            return Ok(new { tags });
         }
     }
 }

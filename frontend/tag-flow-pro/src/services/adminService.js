@@ -30,6 +30,16 @@ const adminService = {
       };
     }
   },
+
+  getAllTags: async () => {
+    try {
+      const response = await axios.get(`${MAIN_URL}/get-all-tags`);
+      return response.data.tags;
+    } catch (error) {
+      console.error("Error fetching tags:", error);
+      throw error;
+    }
+  },
 };
 
 export default adminService;

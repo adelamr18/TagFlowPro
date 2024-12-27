@@ -1,5 +1,5 @@
-
 using Microsoft.EntityFrameworkCore;
+using TagFlowApi.Dtos;
 using TagFlowApi.Infrastructure;
 
 namespace TagFlowApi.Repositories
@@ -45,6 +45,28 @@ namespace TagFlowApi.Repositories
                 Console.WriteLine($"Error updating role name: {ex.Message}");
                 return false;
             }
+        }
+
+        public async Task<IEnumerable<TagDto>> GetAllTagsWithDetailsAsync()
+        {
+            var tags = await _context.Tags
+                .Include(t => t.TagValues)
+                .Include(t => t.UserTagPermissions)
+                    .ThenInclude(tu => tu.User)
+                .Include(t => t.CreatedByAdmin)
+                .AsSplitQuery()
+                .Select(t => new TagDto
+                {
+                    TagId = t.TagId,
+                    TagName = t.TagName,
+                    TagValues = t.TagValues.Select(tv => tv.Value).ToList(),
+                    AssignedUsers = t.UserTagPermissions.Select(tu => tu.User.Username).ToList(),
+                    CreatedByEmail = t.CreatedByAdmin != null ? t.CreatedByAdmin.Email : "",
+                    CreatedByUserName = t.CreatedByAdmin != null ? t.CreatedByAdmin.Username : "",
+                })
+                .ToListAsync();
+
+            return tags;
         }
     }
 }

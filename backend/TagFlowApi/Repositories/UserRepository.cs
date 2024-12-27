@@ -6,8 +6,7 @@ namespace TagFlowApi.Repositories
     public class UserRepository(DataContext context)
     {
         private readonly DataContext _context = context;
-        private static readonly int ADMIN_ROLE_ID = 1;
-
+        
         public User? GetUserByEmail(string email)
         {
             return _context.Users.SingleOrDefault(user => user.Email == email);

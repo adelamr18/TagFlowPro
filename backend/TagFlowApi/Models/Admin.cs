@@ -9,6 +9,8 @@ namespace TagFlowApi.Models
         public string PasswordHash { get; set; } = "";
         public DateTime CreatedAt { get; set; }
 
+        public string CreatedBy { get; set; } = "";
+
         public ICollection<Role> Roles { get; set; } = [];
         public ICollection<User> Users { get; set; } = [];
         public ICollection<Tag> Tags { get; set; } = [];

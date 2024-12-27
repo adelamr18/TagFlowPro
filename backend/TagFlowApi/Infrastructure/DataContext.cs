@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using TagFlowApi.Models;
-using File = TagFlowApi.Models.File;
 
 namespace TagFlowApi.Infrastructure
 {
@@ -14,14 +13,21 @@ namespace TagFlowApi.Infrastructure
         public DbSet<Tag> Tags { get; set; }
         public DbSet<TagValue> TagValues { get; set; }
         public DbSet<UserTagPermission> UserTagPermissions { get; set; }
-        public DbSet<File> Files { get; set; }
+        public DbSet<Models.File> Files { get; set; }
         public DbSet<FileRow> FileRows { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Define relationships using Fluent API
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique(); 
+
+            modelBuilder.Entity<Admin>()
+                .HasIndex(a => a.Email)
+                .IsUnique(); 
+
             modelBuilder.Entity<Role>()
                 .HasOne(r => r.CreatedByAdmin)
                 .WithMany(a => a.Roles)
@@ -58,7 +64,7 @@ namespace TagFlowApi.Infrastructure
                 .HasForeignKey(tv => tv.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            modelBuilder.Entity<File>()
+            modelBuilder.Entity<Models.File>()
                 .HasOne(f => f.UploadedByUser)
                 .WithMany(u => u.Files)
                 .HasForeignKey(f => f.UploadedBy)
@@ -97,7 +103,6 @@ namespace TagFlowApi.Infrastructure
                 .HasForeignKey(utp => utp.TagId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            // Ensure FileRow has a primary key
             modelBuilder.Entity<FileRow>()
                 .HasKey(fr => fr.RowId); 
         }
