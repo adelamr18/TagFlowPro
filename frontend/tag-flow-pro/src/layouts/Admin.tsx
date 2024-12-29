@@ -1,4 +1,3 @@
-import React from "react";
 import { useLocation, Route, Routes, Navigate } from "react-router-dom";
 import { Container } from "reactstrap";
 import AdminNavbar from "components/Navbars/AdminNavbar.tsx";
@@ -6,12 +5,13 @@ import AdminFooter from "components/Footers/AdminFooter.tsx";
 import Sidebar from "components/Sidebar/Sidebar.tsx";
 
 import routes from "routes.js";
+import { useEffect, useRef } from "react";
 
 const Admin = (props) => {
-  const mainContent = React.useRef(null);
+  const mainContent = useRef(null);
   const location = useLocation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
     mainContent.current.scrollTop = 0;

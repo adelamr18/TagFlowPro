@@ -1,18 +1,28 @@
-import React, { createContext, useState, useEffect } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
 import authService from "../services/authService";
 import { toast } from "react-toastify";
 
 interface AuthContextType {
   token: string | null;
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
-  logout: () => void;
+  email: string | null;
+  userName: string | null;
+  logout: () => boolean;
+  login: (
+    email: string,
+    password: string,
+    rememberMe: boolean
+  ) => Promise<boolean>;
   forgetPassword: (email: string, newPassword: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   token: null,
   setToken: () => {},
-  logout: () => {},
+  email: null,
+  userName: null,
+  logout: () => false,
+  login: async () => false,
   forgetPassword: async () => false,
 });
 
@@ -22,22 +32,70 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
+    localStorage.getItem("authToken")
+  );
+  const [email, setEmail] = useState<string | null>(
+    localStorage.getItem("userEmail")
+  );
+  const [userName, setUserName] = useState<string | null>(
+    localStorage.getItem("userName")
   );
 
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem("token", token);
-    } else {
-      localStorage.removeItem("token");
-    }
-  }, [token]);
-
-  const logout = () => {
+  const logout = (): boolean => {
     setToken(null);
+    setEmail(null);
+    setUserName(null);
+
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userName");
+    sessionStorage.removeItem("authToken");
+    sessionStorage.removeItem("userEmail");
+    sessionStorage.removeItem("userName");
+
+    toast.success("Logged out successfully!");
+    return true;
   };
 
-  const forgetPassword = async (email: string, newPassword: string) => {
+  const login = async (
+    email: string,
+    password: string,
+    rememberMe: boolean
+  ): Promise<boolean> => {
+    try {
+      const { success, token, message, userName } = await authService.login(
+        email,
+        password
+      );
+
+      if (success && token) {
+        const storage = rememberMe ? localStorage : sessionStorage;
+
+        storage.setItem("authToken", token);
+        storage.setItem("userEmail", email);
+        storage.setItem("userName", userName);
+
+        setToken(token);
+        setEmail(email);
+        setUserName(userName);
+
+        toast.success(message || "Login successful!");
+        return true;
+      } else {
+        toast.error(message || "Login failed. Please try again.");
+        return false;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An unexpected error occurred. Please try again.");
+      return false;
+    }
+  };
+
+  const forgetPassword = async (
+    email: string,
+    newPassword: string
+  ): Promise<boolean> => {
     try {
       const { success, message } = await authService.forgetPassword(
         email,
@@ -57,13 +115,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("userEmail", email || "");
+      localStorage.setItem("userName", userName || "");
+    } else {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userName");
+    }
+  }, [token, email, userName]);
+
   return (
-    <AuthContext.Provider value={{ token, setToken, logout, forgetPassword }}>
+    <AuthContext.Provider
+      value={{
+        token,
+        setToken,
+        email,
+        userName,
+        logout,
+        login,
+        forgetPassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  return React.useContext(AuthContext);
+export const useAuth = (): AuthContextType => {
+  return useContext(AuthContext);
 };

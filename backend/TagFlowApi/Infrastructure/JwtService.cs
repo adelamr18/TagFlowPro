@@ -17,7 +17,6 @@ namespace TagFlowApi.Infrastructure
             _secret = configuration["Jwt:Secret"];
             _expirationHours = int.Parse(configuration["Jwt:ExpirationHours"]);
 
-            // Ensure the secret is at least 256 bits (32 bytes) long
             if (_secret.Length < 32)
             {
                 throw new InvalidOperationException("JWT secret key must be at least 256 bits (32 bytes) long.");
@@ -28,10 +27,8 @@ namespace TagFlowApi.Infrastructure
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            // Ensure the key is encoded to byte[] with at least 256 bits (32 bytes)
             var key = Encoding.ASCII.GetBytes(_secret);
 
-            // Check the length of the key for validation (should be at least 32 bytes for HMACSHA256)
             if (key.Length < 32)
             {
                 throw new InvalidOperationException("JWT secret key must be at least 256 bits (32 bytes) long.");

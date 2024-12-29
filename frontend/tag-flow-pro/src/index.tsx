@@ -1,4 +1,3 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify"; // Import ToastContainer
@@ -13,7 +12,7 @@ import ContextProvider from "./context/ContextProvider.tsx";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
-  <ContextProvider children={undefined}>
+  <ContextProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/admin/*" element={<AdminLayout />} />

@@ -14,14 +14,15 @@ import "./AuthNavbar.css";
 import { useAuth } from "context/AuthContext";
 
 const AdminNavbar = () => {
-  const { setToken } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    setToken(null);
-    localStorage.removeItem("authToken");
+    const success = logout();
 
-    navigate("/auth/login");
+    if (success) {
+      navigate("/auth/login");
+    }
   };
 
   return (

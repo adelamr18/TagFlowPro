@@ -4,7 +4,8 @@ import { API_URL } from "shared/consts";
 interface LoginResponse {
   success: boolean;
   message: string;
-  token?: string; // Token will be present only if login is successful
+  token?: string;
+  userName?: string;
 }
 
 interface AuthResponse {
@@ -25,12 +26,14 @@ const authService = {
         success: true,
         message: response.data.message,
         token: response.data.token,
+        userName: response.data.userName,
       };
     } catch (error) {
       return {
         success: false,
         message:
           error.response?.data?.message || "Login failed. Please try again.",
+        userName: "",
       };
     }
   },

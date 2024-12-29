@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Button,
   Card,
@@ -15,13 +15,10 @@ import {
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "context/AuthContext.tsx";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import authService from "services/authService";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setToken } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [isEmailInvalid, setIsInvalidEmail] = useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
@@ -89,20 +86,10 @@ const Login = () => {
     }
 
     if (!isEmailInvalid && !isPasswordInvalid) {
-      const result = await authService.login(email, password);
+      const success = await login(email, password, rememberMe);
 
-      if (result.success) {
-        if (rememberMe) {
-          localStorage.setItem("authToken", result.token);
-        } else {
-          sessionStorage.setItem("authToken", result.token);
-        }
-
-        setToken(result.token);
-        toast.success(result.message);
+      if (success) {
         navigate("/dashboard");
-      } else {
-        toast.error(result.message);
       }
     }
   };

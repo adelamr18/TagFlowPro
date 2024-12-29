@@ -3,16 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "context/AuthContext.tsx";
 
 const Logout = () => {
-  const { setToken } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    setToken(null);
-
-    localStorage.removeItem("authToken");
+    logout();
 
     navigate("/auth/login");
-  }, [setToken, navigate]);
+  }, [logout, navigate]);
 
   return null;
 };

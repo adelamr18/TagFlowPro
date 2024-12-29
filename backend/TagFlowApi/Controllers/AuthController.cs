@@ -30,7 +30,7 @@ namespace TagFlowApi.Controllers
                 }
 
                 var token = _jwtService.GenerateToken(admin.AdminId);
-                return Ok(new { message = "Login successful", token, userType = "Admin" });
+                return Ok(new { message = "Login successful", token, userType = "Admin", userName = admin.Username });
             }
 
             var user = _userRepository.GetUserByEmail(request.Email);
@@ -42,10 +42,9 @@ namespace TagFlowApi.Controllers
                 }
 
                 var token = _jwtService.GenerateToken(user.UserId);
-                return Ok(new { message = "Login successful", token, userType = "User" });
+                return Ok(new { message = "Login successful", token, userType = "User", userName = user.Username });
             }
 
-            // If the email is not found in both tables
             return Unauthorized(new { message = "Invalid email or password" });
         }
 

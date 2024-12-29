@@ -29,7 +29,7 @@ import {
 var ps;
 
 const Sidebar = (props) => {
-  const [collapseOpen, setCollapseOpen] = useState();
+  const [collapseOpen, setCollapseOpen] = useState(false);
   const toggleCollapse = () => {
     setCollapseOpen((data) => !data);
   };

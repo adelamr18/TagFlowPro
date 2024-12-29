@@ -1,21 +1,21 @@
 import AuthNavbar from "components/Navbars/AuthNavbar";
-import React from "react";
+import { useRef, useEffect } from "react";
 import { useLocation, Route, Routes, Navigate } from "react-router-dom";
 import { Container, Row, Col } from "reactstrap";
 
 import routes from "routes";
 
-const Auth = (props) => {
-  const mainContent = React.useRef(null);
+const Auth = () => {
+  const mainContent = useRef(null);
   const location = useLocation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     document.body.classList.add("bg-default");
     return () => {
       document.body.classList.remove("bg-default");
     };
   }, []);
-  React.useEffect(() => {
+  useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
     mainContent.current.scrollTop = 0;

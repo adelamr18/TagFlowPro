@@ -11,7 +11,7 @@ import {
   Col,
   FormFeedback,
 } from "reactstrap";
-import React, { useState } from "react";
+import { useState } from "react";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -151,7 +151,7 @@ const ForgetPassword = () => {
         <Card className="bg-secondary shadow border-0">
           <CardBody className="px-lg-5 py-lg-5">
             <div className="text-center text-muted mb-4">
-              <large>Forget Password</large>
+              <span>Forget Password</span>
             </div>
             <Form role="form" onSubmit={handleSubmit}>
               <FormGroup>
