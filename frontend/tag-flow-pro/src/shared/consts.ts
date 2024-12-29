@@ -1,0 +1,2 @@
+export const API_URL = "http://localhost:5500/api";
+export const ITEMS_PER_PAGE = 5;
