@@ -6,8 +6,13 @@ import Sidebar from "components/Sidebar/Sidebar.tsx";
 
 import routes from "routes.js";
 import { useEffect, useRef } from "react";
+import { AppRoute } from "types/AppRoute";
 
-const Admin = (props) => {
+interface AdminProps {
+  location: Location;
+}
+
+const Admin = (props: AdminProps) => {
   const mainContent = useRef(null);
   const location = useLocation();
 
@@ -17,12 +22,11 @@ const Admin = (props) => {
     mainContent.current.scrollTop = 0;
   }, [location]);
 
-  const getRoutes = (routes) => {
-    return routes.map((prop, key) => {
+  const getRoutes = (routes: AppRoute[]) => {
+    return routes.map((prop) => {
       if (prop.layout === "/admin" || prop.layout === "/auth/forgot-password") {
         return (
-          // Remove key from Route component itself, key is handled in map() wrapper
-          <Route path={prop.path} element={prop.component} />
+          <Route key={prop.path} path={prop.path} element={prop.component} />
         );
       } else {
         return null;
@@ -30,7 +34,7 @@ const Admin = (props) => {
     });
   };
 
-  const getBrandText = (path) => {
+  const getBrandText = () => {
     for (let i = 0; i < routes.length; i++) {
       if (
         props?.location?.pathname.indexOf(routes[i].layout + routes[i].path) !==
@@ -54,10 +58,7 @@ const Admin = (props) => {
         }}
       />
       <div className="main-content" ref={mainContent}>
-        <AdminNavbar
-          {...props}
-          brandText={getBrandText(props?.location?.pathname)}
-        />
+        <AdminNavbar {...props} brandText={getBrandText()} />
         <Routes>
           {getRoutes(routes)}
           <Route path="*" element={<Navigate to="/admin/index" replace />} />

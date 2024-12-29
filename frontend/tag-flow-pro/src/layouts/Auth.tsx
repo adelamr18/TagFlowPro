@@ -4,6 +4,7 @@ import { useLocation, Route, Routes, Navigate } from "react-router-dom";
 import { Container, Row, Col } from "reactstrap";
 
 import routes from "routes";
+import { AppRoute } from "types/AppRoute";
 
 const Auth = () => {
   const mainContent = useRef(null);
@@ -21,8 +22,8 @@ const Auth = () => {
     mainContent.current.scrollTop = 0;
   }, [location]);
 
-  const getRoutes = (routes) => {
-    return routes.map((prop, key) => {
+  const getRoutes = (routes: AppRoute[]) => {
+    return routes.map((prop) => {
       if (prop.layout === "/auth") {
         return <Route path={prop.path} element={prop.component} />;
       } else {

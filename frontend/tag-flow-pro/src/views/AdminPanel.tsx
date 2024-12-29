@@ -131,7 +131,6 @@ const AdminPanel = () => {
 
   const handleAddNewTagValue = () => {
     const newValues = [...tagValues];
-    console.log(newValues);
     newValues.push("");
     setTagValues(newValues);
   };
