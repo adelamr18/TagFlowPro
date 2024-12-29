@@ -15,7 +15,7 @@ root.render(
   <ContextProvider>
     <BrowserRouter>
       <Routes>
-        <Route path="/admin/*" element={<AdminLayout />} />
+        <Route path="/admin/*" element={<AdminLayout location={undefined} />} />
         <Route path="/auth/*" element={<AuthLayout />} />
         <Route path="*" element={<Navigate to="/admin/index" replace />} />
       </Routes>
