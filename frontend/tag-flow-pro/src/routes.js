@@ -1,10 +1,10 @@
 import Index from "views/Index.js";
-import Login from "views/examples/Login";
-import AdminPanel from "views/examples/AdminPanel";
-import Icons from "views/examples/Icons.js";
-import ForgetPassword from "views/examples/ForgetPassword";
+import Login from "views/Login";
+import AdminPanel from "views/AdminPanel";
+import Icons from "views/Icons.js";
+import ForgetPassword from "views/ForgetPassword";
 import ProtectedRoute from "components/Utils/ProtectedRoute.tsx";
-import Logout from "views/examples/Logout"; // Import the Logout component
+import Logout from "views/Logout"; // Import the Logout component
 
 var routes = [
   {

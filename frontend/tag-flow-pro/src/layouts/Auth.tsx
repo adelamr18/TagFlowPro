@@ -25,7 +25,9 @@ const Auth = () => {
   const getRoutes = (routes: AppRoute[]) => {
     return routes.map((prop) => {
       if (prop.layout === "/auth") {
-        return <Route path={prop.path} element={prop.component} />;
+        return (
+          <Route key={prop.path} path={prop.path} element={prop.component} />
+        );
       } else {
         return null;
       }
