@@ -6,9 +6,14 @@ namespace TagFlowApi.Controllers
 {
     [ApiController]
     [Route("api/admin")]
-    public class AdminController(AdminRepository adminRepository) : ControllerBase
+    public class AdminController : ControllerBase
     {
-        private readonly AdminRepository _adminRepository = adminRepository;
+        private readonly AdminRepository _adminRepository;
+
+        public AdminController(AdminRepository adminRepository)
+        {
+            _adminRepository = adminRepository;
+        }
 
         [HttpGet("get-all-roles")]
         public IActionResult GetAllRoles()
@@ -28,7 +33,7 @@ namespace TagFlowApi.Controllers
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.NewRoleName))
             {
-                return BadRequest("Invalid input data");
+                return BadRequest("Invalid input data.");
             }
 
             var success = await _adminRepository.UpdateRoleNameAsync(dto.RoleId, dto.NewRoleName);
@@ -119,6 +124,69 @@ namespace TagFlowApi.Controllers
             }
 
             return Ok(new { message = "Tag deleted successfully." });
+        }
+
+        [HttpPut("update-user/{userId}")]
+        public async Task<IActionResult> UpdateUser(int userId, [FromBody] UserUpdateDto dto)
+        {
+            if (dto == null)
+            {
+                return BadRequest("Invalid input data.");
+            }
+
+            var roleExists = await _adminRepository.RoleExists(dto.RoleId);
+            if (!roleExists)
+            {
+                return BadRequest(new { message = "The specified RoleId does not exist." });
+            }
+
+            var success = await _adminRepository.UpdateUserAsync(userId, dto);
+
+            if (!success)
+            {
+                return StatusCode(500, "An error occurred while updating the user.");
+            }
+
+            return Ok(new { message = "User updated successfully." });
+        }
+
+        [HttpDelete("delete-user/{userId}")]
+        public async Task<IActionResult> DeleteUser(int userId)
+        {
+            try
+            {
+                var success = await _adminRepository.DeleteUserAsync(userId);
+
+                if (!success)
+                {
+                    return StatusCode(500, "An error occurred while deleting the user.");
+                }
+
+                return Ok(new { message = "User deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("add-user")]
+        public async Task<IActionResult> AddUser([FromBody] UserCreateDto userCreateDto)
+        {
+            try
+            {
+                var created = await _adminRepository.AddNewUserAsync(userCreateDto, userCreateDto.CreatedByAdminEmail);
+                if (created)
+                {
+                    return Ok(new { success = true });
+                }
+
+                return BadRequest(new { success = false, message = "Failed to create user." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
     }
 }

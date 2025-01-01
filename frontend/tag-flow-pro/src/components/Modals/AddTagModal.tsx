@@ -102,7 +102,7 @@ const AddTagModal: React.FC<AddTagModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} toggle={toggle}>
-      <ModalHeader toggle={toggle}>New Tag: Create Tag</ModalHeader>
+      <ModalHeader toggle={toggle}>Create Tag</ModalHeader>
       <ModalBody>
         {/* Error Message */}
         {errorMessage && (
@@ -155,7 +155,7 @@ const AddTagModal: React.FC<AddTagModalProps> = ({
 
         {/* Assigned Users Section */}
         <div className="mt-3">
-          <label>Assign Users</label>
+          <label>Assigned Users</label>
           <Select
             isMulti
             name="users"

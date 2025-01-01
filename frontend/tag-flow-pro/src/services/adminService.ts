@@ -5,6 +5,7 @@ import { Role } from "types/Role";
 import { User } from "types/User";
 import { UpdateTagDetails } from "types/UpdateTagDetails";
 import { AddTagDetails } from "types/AddTagDetails";
+import { UpdateUserDetails } from "types/UpdateUserDetails";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -115,6 +116,68 @@ const adminService = {
         message:
           error.response?.data?.message ||
           "An error occurred while deleting the tag.",
+      };
+    }
+  },
+
+  deleteUser: async (userId: number): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.delete(`${MAIN_URL}/delete-user/${userId}`);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while deleting the user.",
+      };
+    }
+  },
+
+  updateUser: async (
+    userId: number,
+    userDetails: UpdateUserDetails
+  ): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.put(
+        `${MAIN_URL}/update-user/${userId}`,
+        userDetails
+      );
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while updating the user.",
+      };
+    }
+  },
+
+  addUser: async (
+    userCreateDto: User,
+    createdByAdminEmail: string
+  ): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.post(`${MAIN_URL}/add-user`, {
+        ...userCreateDto,
+        createdByAdminEmail,
+      });
+
+      if (response.data.success) {
+        return { success: true, message: "User created successfully." };
+      } else {
+        return {
+          success: false,
+          message: response.data.message || "Failed to create user.",
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while creating the user.",
       };
     }
   },

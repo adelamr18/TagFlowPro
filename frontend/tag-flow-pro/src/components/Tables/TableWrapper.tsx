@@ -22,8 +22,9 @@ interface TableWrapperProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (pageNumber: number) => void;
-  toggleAddTagModal: () => void;
+  toggleAddModal?: () => void;
   canShowAddButton: boolean;
+  addButtonHeader?: string;
 }
 
 const TableWrapper: React.FC<TableWrapperProps> = ({
@@ -33,8 +34,9 @@ const TableWrapper: React.FC<TableWrapperProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  toggleAddTagModal,
+  toggleAddModal,
   canShowAddButton,
+  addButtonHeader,
 }) => {
   return (
     <div className="col">
@@ -66,8 +68,8 @@ const TableWrapper: React.FC<TableWrapperProps> = ({
         </Table>
         <CardFooter className="py-4">
           {canShowAddButton && (
-            <Button color="primary" onClick={toggleAddTagModal}>
-              Add New Tag
+            <Button color="primary" onClick={toggleAddModal}>
+              {addButtonHeader}
             </Button>
           )}
           <nav aria-label="Pagination">

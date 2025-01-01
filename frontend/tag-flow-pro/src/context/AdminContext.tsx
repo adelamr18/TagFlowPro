@@ -12,6 +12,7 @@ import { User } from "types/User";
 import { Tag } from "types/Tag";
 import { UpdateTagDetails } from "types/UpdateTagDetails";
 import { AddTagDetails } from "types/AddTagDetails";
+import { UpdateUserDetails } from "types/UpdateUserDetails"; // Assuming this is the type for user updates
 
 interface AdminContextType {
   roles: Role[];
@@ -22,10 +23,20 @@ interface AdminContextType {
   createTag: (tagDetails: AddTagDetails) => Promise<boolean>;
   updateTag: (tagDetails: UpdateTagDetails) => Promise<boolean>;
   deleteTag: (tagId: number) => Promise<boolean>;
+  deleteUser: (userId: number) => Promise<boolean>;
+  updateUser: (
+    userId: number,
+    userDetails: UpdateUserDetails
+  ) => Promise<boolean>;
+  addUser: (
+    userCreateDto: User,
+    createdByAdminEmail: string
+  ) => Promise<boolean>;
   editedTags: number[];
   setEditedTags: React.Dispatch<React.SetStateAction<number[]>>;
   users: User[];
   fetchAllUsers: () => void;
+  updateUsers: (updatedUsers: User[]) => void;
 }
 
 const AdminContext = createContext<AdminContextType>({
@@ -37,10 +48,14 @@ const AdminContext = createContext<AdminContextType>({
   createTag: () => Promise.resolve(false),
   updateTag: () => Promise.resolve(false),
   deleteTag: () => Promise.resolve(false),
+  deleteUser: () => Promise.resolve(false),
+  updateUser: () => Promise.resolve(false),
+  addUser: () => Promise.resolve(false),
   editedTags: [],
   setEditedTags: () => {},
   users: [],
   fetchAllUsers: () => {},
+  updateUsers: () => {},
 });
 
 export const AdminProvider: React.FC<{ children: ReactNode }> = ({
@@ -58,6 +73,10 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
+  };
+
+  const updateUsers = (updatedUsers: User[]) => {
+    setUsers(updatedUsers);
   };
 
   const updateRole = async (roleId: number, newRoleName: string) => {
@@ -121,6 +140,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
 
       if (success) {
         toast.success(message || "Tag updated successfully!");
+        await fetchAllUsers();
 
         setTags((prevTags) =>
           prevTags.map((tag) =>
@@ -161,6 +181,62 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
     return success;
   };
 
+  const deleteUser = async (userId: number) => {
+    const { success, message } = await adminService.deleteUser(userId);
+
+    if (success) {
+      toast.success(message || "User deleted successfully!");
+
+      setUsers((prevUsers) =>
+        prevUsers.filter((user) => user.userId !== userId)
+      );
+      await fetchAllTags();
+    } else {
+      toast.error(message || "Failed to delete user. Please try again.");
+    }
+
+    return success;
+  };
+
+  const updateUser = async (userId: number, userDetails: UpdateUserDetails) => {
+    const { success, message } = await adminService.updateUser(
+      userId,
+      userDetails
+    );
+
+    if (success) {
+      toast.success(message || "User updated successfully!");
+
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.userId === userId ? { ...user, ...userDetails } : user
+        )
+      );
+      await Promise.all([fetchAllUsers(), fetchAllTags()]);
+    } else {
+      toast.error(message || "Failed to update user. Please try again.");
+    }
+
+    return success;
+  };
+
+  const addUser = async (userCreateDto: User, createdByAdminEmail: string) => {
+    const { success, message } = await adminService.addUser(
+      userCreateDto,
+      createdByAdminEmail
+    );
+
+    if (success) {
+      toast.success(message || "User created successfully!");
+
+      await Promise.all([fetchAllUsers(), fetchAllTags()]);
+    } else {
+      toast.error(message || "Failed to create user. Please try again.");
+    }
+
+    return success;
+  };
+
   useEffect(() => {
     fetchRoles();
     fetchAllTags();
@@ -178,10 +254,14 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
         tags,
         updateTag,
         deleteTag,
+        deleteUser,
+        updateUser,
+        addUser,
         editedTags,
         setEditedTags,
         users,
         fetchAllUsers,
+        updateUsers,
       }}
     >
       {children}

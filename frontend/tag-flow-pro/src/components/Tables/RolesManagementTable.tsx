@@ -2,7 +2,7 @@ import TableWrapper from "components/Tables/TableWrapper";
 import { Button } from "reactstrap";
 import { Role } from "types/Role";
 
-const RolesManagement = ({
+const RolesManagementTable = ({
   roles,
   currentPage,
   totalPages,
@@ -43,4 +43,4 @@ const RolesManagement = ({
   );
 };
 
-export default RolesManagement;
+export default RolesManagementTable;

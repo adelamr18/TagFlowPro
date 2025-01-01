@@ -5,4 +5,5 @@ export interface Tag {
   assignedUsers: string[];
   createdByEmail: string;
   createdByUserName: string;
+  assignedUserIds: number[];
 }
