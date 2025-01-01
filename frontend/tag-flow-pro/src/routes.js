@@ -1,7 +1,6 @@
 import Index from "views/Index.js";
 import Login from "views/Login";
 import AdminPanel from "views/AdminPanel";
-import Icons from "views/Icons.js";
 import ForgetPassword from "views/ForgetPassword";
 import ProtectedRoute from "components/Utils/ProtectedRoute.tsx";
 import Logout from "views/Logout"; // Import the Logout component
@@ -14,17 +13,6 @@ var routes = [
     component: (
       <ProtectedRoute>
         <Index />
-      </ProtectedRoute>
-    ),
-    layout: "/admin",
-  },
-  {
-    path: "/icons",
-    name: "Icons",
-    icon: "ni ni-planet text-blue",
-    component: (
-      <ProtectedRoute>
-        <Icons />
       </ProtectedRoute>
     ),
     layout: "/admin",

@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 interface AuthContextType {
   token: string | null;
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
-  email: string | null;
+  adminEmail: string | null;
   userName: string | null;
   logout: () => boolean;
   login: (
@@ -19,7 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   token: null,
   setToken: () => {},
-  email: null,
+  adminEmail: null,
   userName: null,
   logout: () => false,
   login: async () => false,
@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("authToken")
   );
-  const [email, setEmail] = useState<string | null>(
+  const [adminEmail, setAdminEmail] = useState<string | null>(
     localStorage.getItem("userEmail")
   );
   const [userName, setUserName] = useState<string | null>(
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = (): boolean => {
     setToken(null);
-    setEmail(null);
+    setAdminEmail(null);
     setUserName(null);
 
     localStorage.removeItem("authToken");
@@ -76,7 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         storage.setItem("userName", userName);
 
         setToken(token);
-        setEmail(email);
+        setAdminEmail(email);
         setUserName(userName);
 
         toast.success(message || "Login successful!");
@@ -118,21 +118,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     if (token) {
       localStorage.setItem("authToken", token);
-      localStorage.setItem("userEmail", email || "");
+      localStorage.setItem("userEmail", adminEmail || "");
       localStorage.setItem("userName", userName || "");
     } else {
       localStorage.removeItem("authToken");
       localStorage.removeItem("userEmail");
       localStorage.removeItem("userName");
     }
-  }, [token, email, userName]);
+  }, [token, adminEmail, userName]);
 
   return (
     <AuthContext.Provider
       value={{
         token,
         setToken,
-        email,
+        adminEmail,
         userName,
         logout,
         login,

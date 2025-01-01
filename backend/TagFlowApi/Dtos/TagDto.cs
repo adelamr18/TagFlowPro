@@ -8,6 +8,7 @@ namespace TagFlowApi.Dtos
         public List<string> AssignedUsers { get; set; } = [];
         public string CreatedByEmail { get; set; } = "";
         public string CreatedByUserName { get; set; } = "";
+        public List<int> AssignedUserIds { get; set; } = [];
 
     }
 }

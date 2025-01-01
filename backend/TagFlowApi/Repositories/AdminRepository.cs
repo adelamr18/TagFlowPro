@@ -50,9 +50,29 @@ namespace TagFlowApi.Repositories
             }
         }
 
-        public async Task<List<User>> GetAllUsers()
+        public async Task<List<UserDto>> GetAllUsers()
         {
-            return await _context.Users.ToListAsync();
+            var users = await _context.Users
+                .Include(u => u.CreatedByAdmin)
+                .Include(u => u.Role)
+                .Include(u => u.UserTagPermissions)
+                    .ThenInclude(utp => utp.Tag)
+                .ToListAsync();
+
+            var userDtos = users.Select(u => new UserDto
+            {
+                UserId = u.UserId,
+                Username = u.Username,
+                Email = u.Email,
+                CreatedByAdminEmail = u.CreatedByAdmin != null ? u.CreatedByAdmin.Email : "",
+                CreatedByAdminName = u.CreatedByAdmin != null ? u.CreatedByAdmin.Username : "",
+                RoleName = u.Role.RoleName,
+                RoleId = u.RoleId,
+                AssignedTags = u.UserTagPermissions?.Select(utp => utp.Tag.TagName ?? "").ToList() ?? []
+            })
+            .ToList();
+
+            return userDtos;
         }
 
         public async Task<IEnumerable<TagDto>> GetAllTagsWithDetailsAsync()
@@ -240,6 +260,151 @@ namespace TagFlowApi.Repositories
             catch (Exception ex)
             {
                 Console.WriteLine($"Error creating tag: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> AddNewUserAsync(UserCreateDto userCreateDto, string createdByAdminEmail)
+        {
+            if (userCreateDto == null)
+            {
+                throw new ArgumentException("UserCreateDto cannot be null.");
+            }
+
+            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email == createdByAdminEmail);
+            if (admin == null)
+            {
+                throw new Exception("Admin not found.");
+            }
+
+            if (await _context.Users.AnyAsync(u => u.Email == userCreateDto.Email))
+            {
+                throw new Exception("User with the given email already exists.");
+            }
+
+            if (!await _context.Roles.AnyAsync(r => r.RoleId == userCreateDto.RoleId))
+            {
+                throw new Exception($"Role with ID {userCreateDto.RoleId} not found.");
+            }
+
+            var hashedPassword = Utils.Helpers.HashPassword(userCreateDto.Password);
+
+            var newUser = new User
+            {
+                Username = userCreateDto.Username,
+                Email = userCreateDto.Email,
+                PasswordHash = hashedPassword,
+                RoleId = userCreateDto.RoleId,
+                CreatedBy = admin.AdminId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            if (userCreateDto.AssignedTagIds != null && userCreateDto.AssignedTagIds.Any())
+            {
+                newUser.UserTagPermissions = userCreateDto.AssignedTagIds.Select(tagId => new UserTagPermission
+                {
+                    TagId = tagId
+                }).ToList();
+            }
+
+            try
+            {
+                await _context.Users.AddAsync(newUser);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating user: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteUserAsync(int userId)
+        {
+            var user = await _context.Users
+                .Include(u => u.UserTagPermissions)
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                throw new Exception($"User with ID {userId} not found.");
+            }
+
+            _context.UserTagPermissions.RemoveRange(user.UserTagPermissions);
+            _context.Users.Remove(user);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting user: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> RoleExists(int? roleId)
+        {
+            return await _context.Roles.AnyAsync(r => r.RoleId == roleId);
+        }
+
+        public async Task<bool> UpdateUserAsync(int userId, UserUpdateDto userUpdateDto)
+        {
+            if (userUpdateDto == null)
+            {
+                throw new ArgumentException("UserUpdateDto cannot be null.");
+            }
+
+            var user = await _context.Users
+                .Include(u => u.UserTagPermissions)
+                .ThenInclude(utp => utp.Tag) 
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                throw new Exception($"User with ID {userId} not found.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.Username))
+            {
+                user.Username = userUpdateDto.Username;
+            }
+
+            if (userUpdateDto.RoleId.HasValue)
+            {
+                user.RoleId = userUpdateDto.RoleId.Value;
+            }
+
+            if (userUpdateDto.AssignedTagIds != null)
+            {
+                var currentTagIds = user.UserTagPermissions.Select(utp => utp.TagId).ToList();
+
+                var tagsToAdd = userUpdateDto.AssignedTagIds
+                    .Except(currentTagIds)
+                    .Select(tagId => new UserTagPermission { UserId = userId, TagId = tagId });
+
+                var tagsToRemove = user.UserTagPermissions
+                    .Where(utp => !userUpdateDto.AssignedTagIds.Contains(utp.TagId))
+                    .ToList();
+
+                await _context.UserTagPermissions.AddRangeAsync(tagsToAdd);
+
+                _context.UserTagPermissions.RemoveRange(tagsToRemove);
+            }
+
+            try
+            {
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating user: {ex.Message}");
                 return false;
             }
         }

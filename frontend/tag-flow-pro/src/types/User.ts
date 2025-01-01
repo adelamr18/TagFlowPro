@@ -1,15 +1,16 @@
-import { Role } from "./Role";
-
 export interface User {
-  userId: number;
+  userId?: number;
   username: string;
+  password?: string;
   email: string;
-  passwordHash: string;
-  createdAt: string;
+  createdAt?: string;
+  roleName?: string;
+  createdBy?: number;
+  createdByAdminName?: string;
+  createdByAdminEmail: string;
+  userTagPermissions?: any[];
+  files?: any[];
   roleId: number;
-  role: Role | null;
-  createdBy: number;
-  createdByAdmin: User | null;
-  userTagPermissions: any[];
-  files: any[];
+  assignedTags?: string[];
+  assignedTagIds: number[];
 }

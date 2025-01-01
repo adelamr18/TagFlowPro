@@ -2,7 +2,7 @@ import TableWrapper from "components/Tables/TableWrapper";
 import { Button } from "reactstrap";
 import { Tag } from "types/Tag";
 
-const TagsManagement = ({
+const TagsManagementTable = ({
   tags,
   currentPage,
   totalPages,
@@ -75,8 +75,9 @@ const TagsManagement = ({
       onPageChange={paginateTagsTable}
       toggleAddModal={toggleAddTagModal}
       canShowAddButton={true}
+      addButtonHeader="Add New Tag"
     />
   );
 };
 
-export default TagsManagement;
+export default TagsManagementTable;

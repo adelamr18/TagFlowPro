@@ -1,4 +1,3 @@
-import { Container, Row } from "reactstrap";
 import Header from "components/Headers/Header.tsx";
 import { useState } from "react";
 import { useAdmin } from "context/AdminContext.tsx";
@@ -6,14 +5,18 @@ import { User } from "types/User";
 import { Tag } from "types/Tag";
 import { Role } from "types/Role";
 import { ITEMS_PER_PAGE } from "shared/consts";
-import RolesManagement from "./RolesManagement";
-import TagsManagement from "./TagsManagement";
 import RoleEditModal from "components/Modals/RoleEditModal";
 import TagEditModal from "components/Modals/TagEditModal";
 import TagValuesModal from "components/Modals/TagValuesModal";
-import AddTagModal from "components/Modals/AddTagModal"; // Import AddTagModal
+import AddTagModal from "components/Modals/AddTagModal";
 import { AddTagDetails } from "types/AddTagDetails";
 import { useAuth } from "context/AuthContext";
+import RolesManagementTable from "components/Tables/RolesManagementTable";
+import TagsManagementTable from "../components/Tables/TagsManagementTable";
+import UsersManagementTable from "components/Tables/UsersManagementTable";
+import EditUserModal from "components/Modals/EditUserModal";
+import AddUserModal from "components/Modals/AddUserModal";
+import { Container, Row } from "reactstrap";
 
 interface UserOption {
   label: string;
@@ -22,8 +25,17 @@ interface UserOption {
 
 const AdminPanel = () => {
   // Context Hooks
-  const { roles, updateRole, tags, updateTag, users, createTag, deleteTag } =
-    useAdmin();
+  const {
+    roles,
+    updateRole,
+    tags,
+    updateTag,
+    users,
+    createTag,
+    deleteTag,
+    deleteUser,
+    addUser,
+  } = useAdmin();
   const { userName } = useAuth();
 
   // State: Roles Management
@@ -53,11 +65,24 @@ const AdminPanel = () => {
   const currentTags = (tags || []).slice(indexOfFirstTag, indexOfLastTag);
   const [currentEditTagPage, setCurrentEditTagPage] = useState(1);
 
+  // State: Users Management
+  const [userModal, setUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [currentUserPage, setCurrentUserPage] = useState(1);
+  const totalUserPages = Math.ceil((users?.length || 0) / ITEMS_PER_PAGE);
+  const indexOfLastUser = currentUserPage * ITEMS_PER_PAGE;
+  const indexOfFirstUser = indexOfLastUser - ITEMS_PER_PAGE;
+  const currentUsers = (users || []).slice(indexOfFirstUser, indexOfLastUser);
+
   // State: Add Tag Modal
   const [addTagModal, setAddTagModal] = useState(false);
   const [tagName, setTagName] = useState("");
   const [tagValues, setTagValues] = useState<string[]>([]);
   const [assignedUsers, setAssignedUsers] = useState<UserOption[]>([]);
+
+  // State: Add User Modal
+  const [addUserModal, setAddUserModal] = useState(false);
+  const toggleAddUserModal = () => setAddUserModal(!addUserModal);
 
   // Derived User Options
   const userOptions = users.map((user: User) => ({
@@ -85,6 +110,22 @@ const AdminPanel = () => {
         return "View Status Only";
       default:
         return "No Permissions";
+    }
+  };
+
+  // Utility Functions: Users Managements
+  const paginateUsersTable = (pageNumber: number) =>
+    setCurrentUserPage(pageNumber);
+
+  const handleDeleteUser = async (userId: number) => {
+    await deleteUser(userId);
+  };
+
+  const handleAddUser = async (userDetails: User) => {
+    const success = await addUser(userDetails, userDetails.createdByAdminEmail);
+
+    if (success) {
+      toggleAddUserModal();
     }
   };
 
@@ -193,7 +234,8 @@ const AdminPanel = () => {
   const toggleRoleModal = () => setRoleModal(!roleModal);
   const toggleTagValuesModal = () => setTagValuesModal(!tagValuesModal);
   const toggleEditTagModal = () => setTagEditModal(!tagEditModal);
-  const toggleAddTagModal = () => setAddTagModal(!addTagModal); // Toggle function for AddTagModal
+  const toggleAddTagModal = () => setAddTagModal(!addTagModal);
+  const toggleUserModal = () => setUserModal(!userModal);
 
   // Modal Open Functions
   const openEditRoleModal = (role: Role) => {
@@ -206,13 +248,18 @@ const AdminPanel = () => {
     toggleTagValuesModal();
   };
 
+  const openEditUserModal = (user: User) => {
+    setSelectedUser(user);
+    toggleUserModal();
+  };
+
   return (
     <>
       <Header />
       <Container className="mt--7" fluid>
         <Row>
           <div className="col">
-            <RolesManagement
+            <RolesManagementTable
               roles={currentRoles}
               currentPage={currentRolePage}
               totalPages={totalPages}
@@ -255,6 +302,23 @@ const AdminPanel = () => {
           tagValues={updatedTagValues}
         />
 
+        <EditUserModal
+          isOpen={userModal}
+          toggle={toggleUserModal}
+          user={selectedUser}
+          roles={roles}
+          preSelectedTags={selectedUser?.assignedTags ?? []}
+          tags={tags}
+        />
+
+        <AddUserModal
+          isOpen={addUserModal}
+          toggle={toggleAddUserModal}
+          roles={roles}
+          tags={tags}
+          handleAddUser={handleAddUser}
+        />
+
         {/* Add Tag Modal */}
         <AddTagModal
           isOpen={addTagModal}
@@ -265,7 +329,7 @@ const AdminPanel = () => {
           setTagValues={setTagValues}
           assignedUsers={assignedUsers}
           setAssignedUsers={setAssignedUsers}
-          filteredUserOptions={filteredUserOptions}
+          filteredUserOptions={userOptions}
           currentEditTagPage={currentEditTagPage}
           setCurrentEditTagPage={setCurrentEditTagPage}
           ITEMS_PER_PAGE={ITEMS_PER_PAGE}
@@ -277,7 +341,7 @@ const AdminPanel = () => {
 
         <Row className="mt-5">
           <div className="col">
-            <TagsManagement
+            <TagsManagementTable
               tags={currentTags}
               currentPage={currentTagPage}
               totalPages={totalTagParentPages}
@@ -286,6 +350,20 @@ const AdminPanel = () => {
               openTagValuesModal={openTagValuesModal}
               toggleAddTagModal={toggleAddTagModal}
               handleDeleteOuterTag={handleDeleteOuterTag}
+            />
+          </div>
+        </Row>
+
+        <Row className="mt-5">
+          <div className="col">
+            <UsersManagementTable
+              users={currentUsers}
+              currentPage={currentUserPage}
+              totalPages={totalUserPages}
+              paginateUsersTable={paginateUsersTable}
+              openEditUserModal={openEditUserModal}
+              handleDeleteUser={handleDeleteUser}
+              toggleAddUserModal={toggleAddUserModal}
             />
           </div>
         </Row>
