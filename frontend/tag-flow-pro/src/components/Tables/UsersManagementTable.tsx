@@ -40,13 +40,14 @@ const UsersManagementTable: React.FC<UsersManagementTableProps> = ({
     {
       header: "Role",
       accessor: "role",
-      render: (user: User) => user.roleName || "N/A", // Render role name
+      render: (user: User) => user.roleName || "N/A",
     },
+    { header: "Created By", accessor: "createdByAdminEmail" },
     {
       header: "Assigned Tags",
       accessor: "tags",
       render: (user: User) => {
-        const userTags = user.assignedTags || []; // Directly use assignedTags from user
+        const userTags = user.assignedTags || [];
 
         return userTags.length > 3 ? (
           <>
@@ -64,8 +65,7 @@ const UsersManagementTable: React.FC<UsersManagementTableProps> = ({
         );
       },
     },
-    { header: "Created By UserName", accessor: "createdByAdminName" },
-    { header: "Created By Email", accessor: "createdByAdminEmail" },
+    { header: "Updated By", accessor: "updatedBy" },
     {
       header: "Actions",
       accessor: "",

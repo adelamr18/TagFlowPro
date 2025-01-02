@@ -6,7 +6,7 @@ interface AuthContextType {
   token: string | null;
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
   adminEmail: string | null;
-  userName: string | null;
+  adminUsername: string | null;
   logout: () => boolean;
   login: (
     email: string,
@@ -14,16 +14,18 @@ interface AuthContextType {
     rememberMe: boolean
   ) => Promise<boolean>;
   forgetPassword: (email: string, newPassword: string) => Promise<boolean>;
+  currentRoleId: number;
 }
 
 const AuthContext = createContext<AuthContextType>({
   token: null,
   setToken: () => {},
   adminEmail: null,
-  userName: null,
+  adminUsername: null,
   logout: () => false,
   login: async () => false,
   forgetPassword: async () => false,
+  currentRoleId: null,
 });
 
 interface AuthProviderProps {
@@ -37,14 +39,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [adminEmail, setAdminEmail] = useState<string | null>(
     localStorage.getItem("userEmail")
   );
-  const [userName, setUserName] = useState<string | null>(
+  const [adminUsername, setAdminUsername] = useState<string | null>(
     localStorage.getItem("userName")
   );
+  const [currentRoleId, setCurrentRoleId] = useState(0);
 
   const logout = (): boolean => {
     setToken(null);
     setAdminEmail(null);
-    setUserName(null);
+    setAdminUsername(null);
 
     localStorage.removeItem("authToken");
     localStorage.removeItem("userEmail");
@@ -63,10 +66,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     rememberMe: boolean
   ): Promise<boolean> => {
     try {
-      const { success, token, message, userName } = await authService.login(
-        email,
-        password
-      );
+      const { success, token, message, userName, roleId } =
+        await authService.login(email, password);
 
       if (success && token) {
         const storage = rememberMe ? localStorage : sessionStorage;
@@ -77,7 +78,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         setToken(token);
         setAdminEmail(email);
-        setUserName(userName);
+        setAdminUsername(userName);
+        setCurrentRoleId(roleId);
 
         toast.success(message || "Login successful!");
         return true;
@@ -119,13 +121,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (token) {
       localStorage.setItem("authToken", token);
       localStorage.setItem("userEmail", adminEmail || "");
-      localStorage.setItem("userName", userName || "");
+      localStorage.setItem("userName", adminUsername || "");
     } else {
       localStorage.removeItem("authToken");
       localStorage.removeItem("userEmail");
       localStorage.removeItem("userName");
     }
-  }, [token, adminEmail, userName]);
+  }, [token, adminEmail, adminUsername]);
 
   return (
     <AuthContext.Provider
@@ -133,10 +135,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         token,
         setToken,
         adminEmail,
-        userName,
+        adminUsername,
         logout,
         login,
         forgetPassword,
+        currentRoleId,
       }}
     >
       {children}

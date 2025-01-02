@@ -6,13 +6,14 @@ namespace TagFlowApi.Models
         public int RowId { get; set; }
         public string Data { get; set; } = "";
         public DateTime CreatedAt { get; set; }
+        public int FileId { get; set; }
+        public int TagId { get; set; }
+
 
         // Foreign key to File table
-        public int FileId { get; set; }
         public File File { get; set; } = null!;
 
         // Foreign key to Tag table
-        public int TagId { get; set; }
         public Tag Tag { get; set; } = null!;
 
         // Foreign key to TagValue table

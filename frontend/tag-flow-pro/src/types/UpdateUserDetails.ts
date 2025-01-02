@@ -3,4 +3,5 @@ export interface UpdateUserDetails {
   email?: string;
   roleId?: number;
   assignedTagIds: number[];
+  updatedBy?: string;
 }

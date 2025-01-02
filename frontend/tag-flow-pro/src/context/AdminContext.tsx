@@ -13,17 +13,25 @@ import { Tag } from "types/Tag";
 import { UpdateTagDetails } from "types/UpdateTagDetails";
 import { AddTagDetails } from "types/AddTagDetails";
 import { UpdateUserDetails } from "types/UpdateUserDetails"; // Assuming this is the type for user updates
+import { Admin } from "types/Admin";
+import { UpdateAdminDetails } from "types/UpdateAdminDetails";
+import { AddAdminDetails } from "types/AddAdminDetails";
 
 interface AdminContextType {
   roles: Role[];
   fetchRoles: () => void;
-  updateRole: (roleId: number, newRoleName: string) => Promise<boolean>;
+  updateRole: (
+    roleId: number,
+    newRoleName: string,
+    updatedBy: string
+  ) => Promise<boolean>;
   tags: Tag[];
   fetchAllTags: () => void;
   createTag: (tagDetails: AddTagDetails) => Promise<boolean>;
   updateTag: (tagDetails: UpdateTagDetails) => Promise<boolean>;
   deleteTag: (tagId: number) => Promise<boolean>;
   deleteUser: (userId: number) => Promise<boolean>;
+  deleteAdmin: (adminId: number) => Promise<boolean>;
   updateUser: (
     userId: number,
     userDetails: UpdateUserDetails
@@ -37,6 +45,13 @@ interface AdminContextType {
   users: User[];
   fetchAllUsers: () => void;
   updateUsers: (updatedUsers: User[]) => void;
+  admins: Admin[];
+  fetchAllAdmins: () => void;
+  updateAdmin: (
+    adminId: number,
+    updateAdminDetails: UpdateAdminDetails
+  ) => Promise<boolean>;
+  addAdmin: (adminDetails: AddAdminDetails) => Promise<boolean>;
 }
 
 const AdminContext = createContext<AdminContextType>({
@@ -56,6 +71,11 @@ const AdminContext = createContext<AdminContextType>({
   users: [],
   fetchAllUsers: () => {},
   updateUsers: () => {},
+  admins: [],
+  fetchAllAdmins: () => {},
+  updateAdmin: () => Promise.resolve(false),
+  addAdmin: () => Promise.resolve(false),
+  deleteAdmin: () => Promise.resolve(false),
 });
 
 export const AdminProvider: React.FC<{ children: ReactNode }> = ({
@@ -65,6 +85,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
   const [tags, setTags] = useState<Tag[]>([]);
   const [editedTags, setEditedTags] = useState<number[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [admins, setAdmins] = useState<Admin[]>([]);
 
   const fetchRoles = async () => {
     try {
@@ -79,10 +100,15 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
     setUsers(updatedUsers);
   };
 
-  const updateRole = async (roleId: number, newRoleName: string) => {
+  const updateRole = async (
+    roleId: number,
+    newRoleName: string,
+    updatedBy: string
+  ) => {
     const { success, message } = await adminService.updateRole(
       roleId,
-      newRoleName
+      newRoleName,
+      updatedBy
     );
 
     if (success) {
@@ -93,6 +119,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
           role.roleId === roleId ? { ...role, roleName: newRoleName } : role
         )
       );
+      fetchRoles();
     } else {
       toast.error(message || "Failed to update role. Please try again.");
     }
@@ -237,10 +264,73 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
     return success;
   };
 
+  const fetchAllAdmins = async () => {
+    try {
+      const data = await adminService.getAllAdmins();
+      setAdmins(data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  const updateAdmin = async (
+    adminId: number,
+    updateAdminDetails: UpdateAdminDetails
+  ) => {
+    const { success, message } = await adminService.updateAdmin(
+      adminId,
+      updateAdminDetails
+    );
+
+    if (success) {
+      toast.success(message || "User created successfully!");
+
+      await Promise.all([
+        fetchAllUsers(),
+        fetchAllTags(),
+        fetchRoles(),
+        fetchAllAdmins(),
+      ]);
+    } else {
+      toast.error(message || "Failed to create user. Please try again.");
+    }
+
+    return success;
+  };
+
+  const addAdmin = async (adminDetails: AddAdminDetails) => {
+    const { success, message } = await adminService.addAdmin(adminDetails);
+
+    if (success) {
+      toast.success(message || "Admin created successfully!");
+
+      await fetchAllAdmins();
+    } else {
+      toast.error(message || "Failed to create Admin. Please try again.");
+    }
+
+    return success;
+  };
+
+  const deleteAdmin = async (adminId: number) => {
+    const { success, message } = await adminService.deleteAdmin(adminId);
+
+    if (success) {
+      toast.success(message || "Admin deleted successfully!");
+
+      await fetchAllAdmins();
+    } else {
+      toast.error(message || "Failed to delete admin. Please try again.");
+    }
+
+    return success;
+  };
+
   useEffect(() => {
     fetchRoles();
     fetchAllTags();
     fetchAllUsers();
+    fetchAllAdmins();
   }, []);
 
   return (
@@ -262,6 +352,11 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
         users,
         fetchAllUsers,
         updateUsers,
+        fetchAllAdmins,
+        admins,
+        updateAdmin,
+        addAdmin,
+        deleteAdmin,
       }}
     >
       {children}

@@ -18,6 +18,7 @@ const RolesManagementTable = ({
       accessor: "roleId",
       render: (role: Role) => getPermissions(role.roleId),
     },
+    { header: "Updated By", accessor: "updatedBy" },
     {
       header: "Actions",
       accessor: "",

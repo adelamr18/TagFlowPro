@@ -4,5 +4,6 @@ namespace TagFlowApi.Dtos
     {
         public int RoleId { get; set; }
         public string NewRoleName { get; set; } = "";
+        public string UpdatedBy { get; set; } = "";
     }
 }

@@ -5,4 +5,5 @@ export interface UpdateTagDetails {
   tagValues: string[];
   updatedByAdminId: number | null;
   assignedUsers: string[];
+  updatedBy: string;
 }

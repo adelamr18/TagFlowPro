@@ -14,7 +14,7 @@ import Select from "react-select";
 import { User } from "types/User";
 import { Role } from "types/Role";
 import { Tag } from "types/Tag";
-import { useAdmin } from "context/AdminContext";
+import { UpdateUserDetails } from "types/UpdateUserDetails";
 
 interface EditUserModalProps {
   isOpen: boolean;
@@ -23,6 +23,7 @@ interface EditUserModalProps {
   roles: Role[];
   tags: Tag[];
   preSelectedTags: string[];
+  updateUser: (userId: number, userDetails: UpdateUserDetails) => void;
 }
 
 const EditUserModal: React.FC<EditUserModalProps> = ({
@@ -32,11 +33,11 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   roles,
   tags,
   preSelectedTags,
+  updateUser,
 }) => {
   const [username, setUsername] = useState("");
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  const { updateUser } = useAdmin();
 
   const tagOptions = tags.map((tag) => ({
     value: tag.tagId,
@@ -81,15 +82,11 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
       return;
     }
 
-    const success = await updateUser(user.userId, {
+    updateUser(user.userId, {
       username,
       roleId: selectedRoleId,
       assignedTagIds: selectedTags.map((tag) => tag.tagId),
     });
-
-    if (success) {
-      toggle();
-    }
   };
 
   return (
