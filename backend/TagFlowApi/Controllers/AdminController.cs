@@ -16,11 +16,11 @@ namespace TagFlowApi.Controllers
         }
 
         [HttpGet("get-all-roles")]
-        public IActionResult GetAllRoles()
+        public async Task<IActionResult> GetAllRoles()
         {
-            var roles = _adminRepository.GetAllRolesWithAdminDetails();
+            var roles = await _adminRepository.GetAllRolesWithAdminDetails();
 
-            if (!roles.Any())
+            if (roles == null || !roles.Any())
             {
                 return NotFound(new { message = "No roles found." });
             }
@@ -36,7 +36,7 @@ namespace TagFlowApi.Controllers
                 return BadRequest("Invalid input data.");
             }
 
-            var success = await _adminRepository.UpdateRoleNameAsync(dto.RoleId, dto.NewRoleName);
+            var success = await _adminRepository.UpdateRoleNameAsync(dto.RoleId, dto.NewRoleName, dto.UpdatedBy);
 
             if (!success)
             {
@@ -186,6 +186,77 @@ namespace TagFlowApi.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("get-all-admins")]
+        public async Task<IActionResult> GetAllAdmins()
+        {
+            var admins = await _adminRepository.GetAllAdmins();
+
+            if (!admins.Any())
+            {
+                return NotFound(new { message = "No admins found." });
+            }
+
+            return Ok(new { admins });
+        }
+
+        [HttpPost("add-admin")]
+        public async Task<IActionResult> AddAdmin([FromBody] CreateAdminDto adminCreatedDto)
+        {
+            try
+            {
+                var created = await _adminRepository.AddNewAdminAsync(adminCreatedDto, adminCreatedDto.CreatedBy);
+                if (created)
+                {
+                    return Ok(new { success = true });
+                }
+
+                return BadRequest(new { success = false, message = "Failed to create admin." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpPut("update-admin/{adminId}")]
+        public async Task<IActionResult> UpdateAdmin(int adminId, [FromBody] UpdateAdminDto dto)
+        {
+            if (dto == null)
+            {
+                return BadRequest("Invalid input data.");
+            }
+
+            var success = await _adminRepository.UpdateAdminAsync(adminId, dto, dto.UpdatedBy);
+
+            if (!success)
+            {
+                return StatusCode(500, "An error occurred while updating the admin.");
+            }
+
+            return Ok(new { message = "Admin updated successfully." });
+        }
+
+        [HttpDelete("delete-admin/{adminId}")]
+        public async Task<IActionResult> DeleteAdmin(int adminId)
+        {
+            try
+            {
+                var success = await _adminRepository.DeleteAdminAsync(adminId);
+
+                if (!success)
+                {
+                    return StatusCode(500, "An error occurred while deleting the admin.");
+                }
+
+                return Ok(new { message = "Admin deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
         }
     }

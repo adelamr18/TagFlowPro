@@ -17,6 +17,14 @@ import UsersManagementTable from "components/Tables/UsersManagementTable";
 import EditUserModal from "components/Modals/EditUserModal";
 import AddUserModal from "components/Modals/AddUserModal";
 import { Container, Row } from "reactstrap";
+import { UpdateUserDetails } from "types/UpdateUserDetails";
+import { UpdateTagDetails } from "types/UpdateTagDetails";
+import AdminsManagementTable from "../components/Tables/AdminsManagementTable";
+import { Admin } from "types/Admin";
+import EditAdminModal from "components/Modals/EditAdminModal";
+import { UpdateAdminDetails } from "types/UpdateAdminDetails";
+import AddAdminModal from "components/Modals/AddAdminModal";
+import { AddAdminDetails } from "types/AddAdminDetails";
 
 interface UserOption {
   label: string;
@@ -35,8 +43,13 @@ const AdminPanel = () => {
     deleteTag,
     deleteUser,
     addUser,
+    updateUser,
+    admins,
+    updateAdmin,
+    addAdmin,
+    deleteAdmin,
   } = useAdmin();
-  const { userName } = useAuth();
+  const { adminUsername, adminEmail, currentRoleId } = useAuth();
 
   // State: Roles Management
   const [currentRolePage, setCurrentRolePage] = useState(1);
@@ -47,6 +60,7 @@ const AdminPanel = () => {
   const indexOfLastRole = currentRolePage * rolesPerPage;
   const indexOfFirstRole = indexOfLastRole - rolesPerPage;
   const currentRoles = (roles || []).slice(indexOfFirstRole, indexOfLastRole);
+  console.log(currentRoleId);
 
   // State: Tags Management
   const [currentTagPage, setCurrentTagPage] = useState(1);
@@ -74,6 +88,16 @@ const AdminPanel = () => {
   const indexOfFirstUser = indexOfLastUser - ITEMS_PER_PAGE;
   const currentUsers = (users || []).slice(indexOfFirstUser, indexOfLastUser);
 
+  // State: Admins Management
+  const [currentAdminPage, setCurrentAdminPage] = useState(1);
+  const totalAdminPages = Math.ceil((admins?.length || 0) / ITEMS_PER_PAGE);
+  const indexOfLastAdmin = currentAdminPage * ITEMS_PER_PAGE;
+  const indexOfFirstAdmin = indexOfLastAdmin - ITEMS_PER_PAGE;
+  const currentAdmins = (admins || []).slice(
+    indexOfFirstAdmin,
+    indexOfLastAdmin
+  );
+
   // State: Add Tag Modal
   const [addTagModal, setAddTagModal] = useState(false);
   const [tagName, setTagName] = useState("");
@@ -83,6 +107,14 @@ const AdminPanel = () => {
   // State: Add User Modal
   const [addUserModal, setAddUserModal] = useState(false);
   const toggleAddUserModal = () => setAddUserModal(!addUserModal);
+
+  // State: Edit Admin Modal
+  const [editAdminModal, setEditAdminModal] = useState(false);
+  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+
+  // State: Add Admin Modal
+  const [addAdminModal, setAddAdminModal] = useState(false);
+  const toggleAddAdminModal = () => setAddAdminModal(!addAdminModal);
 
   // Derived User Options
   const userOptions = users.map((user: User) => ({
@@ -113,6 +145,14 @@ const AdminPanel = () => {
     }
   };
 
+  const handleUpdateRole = async (roleId: number, roleName: string) => {
+    const success = await updateRole(selectedRole.roleId, roleName, adminEmail);
+
+    if (success) {
+      toggleRoleModal();
+    }
+  };
+
   // Utility Functions: Users Managements
   const paginateUsersTable = (pageNumber: number) =>
     setCurrentUserPage(pageNumber);
@@ -126,6 +166,18 @@ const AdminPanel = () => {
 
     if (success) {
       toggleAddUserModal();
+    }
+  };
+
+  const handleUpdateUser = async (
+    userId: number,
+    userDetails: UpdateUserDetails
+  ) => {
+    const userDetailsUpdated = { ...userDetails, updatedBy: adminEmail };
+    const success = await updateUser(userId, userDetailsUpdated);
+
+    if (success) {
+      toggleUserModal();
     }
   };
 
@@ -199,12 +251,13 @@ const AdminPanel = () => {
       (user: UserOption) => user.label
     );
 
-    const updatedTag = {
+    const updatedTag: UpdateTagDetails = {
       ...selectedTag,
       tagName: editedTagName,
       tagValues: editedTagValues,
       updatedByAdminId: null,
       assignedUsers,
+      updatedBy: adminEmail,
     };
     const success = await updateTag(updatedTag);
     if (success) {
@@ -217,7 +270,7 @@ const AdminPanel = () => {
       tagName: tagName,
       tagValues: tagValues,
       assignedUsers: assignedUsers.map((user) => user.label),
-      adminUsername: userName,
+      adminUsername,
     };
 
     const success = await createTag(tagDetails);
@@ -227,6 +280,33 @@ const AdminPanel = () => {
       setTagValues([]);
       setAssignedUsers([]);
       toggleAddTagModal();
+    }
+  };
+
+  // Utility Functions: Admins Management
+  const paginateAdminsTable = (pageNumber: number) =>
+    setCurrentAdminPage(pageNumber);
+
+  const handleDeleteAdmin = async (adminId: number) => {
+    await deleteAdmin(adminId);
+  };
+
+  const handleUpdateAdmin = async (
+    adminId: number,
+    updateAdminDetails: UpdateAdminDetails
+  ) => {
+    const success = await updateAdmin(adminId, updateAdminDetails);
+
+    if (success) {
+      toggleEditAdminModal();
+    }
+  };
+
+  const handleAddAdmin = async (adminDetails: AddAdminDetails) => {
+    const success = await addAdmin(adminDetails);
+
+    if (success) {
+      toggleAddAdminModal();
     }
   };
 
@@ -253,6 +333,13 @@ const AdminPanel = () => {
     toggleUserModal();
   };
 
+  const toggleEditAdminModal = () => setEditAdminModal(!editAdminModal);
+
+  const openEditAdminModal = (admin: Admin) => {
+    setSelectedAdmin(admin);
+    toggleEditAdminModal();
+  };
+
   return (
     <>
       <Header />
@@ -274,7 +361,7 @@ const AdminPanel = () => {
           isOpen={roleModal}
           toggle={toggleRoleModal}
           selectedRole={selectedRole}
-          updateRole={updateRole}
+          updateRole={handleUpdateRole}
         />
 
         <TagEditModal
@@ -302,6 +389,14 @@ const AdminPanel = () => {
           tagValues={updatedTagValues}
         />
 
+        <EditAdminModal
+          isOpen={editAdminModal}
+          toggle={toggleEditAdminModal}
+          admin={selectedAdmin}
+          updatedBy={adminEmail}
+          updateAdmin={handleUpdateAdmin}
+        />
+
         <EditUserModal
           isOpen={userModal}
           toggle={toggleUserModal}
@@ -309,6 +404,7 @@ const AdminPanel = () => {
           roles={roles}
           preSelectedTags={selectedUser?.assignedTags ?? []}
           tags={tags}
+          updateUser={handleUpdateUser}
         />
 
         <AddUserModal
@@ -319,7 +415,12 @@ const AdminPanel = () => {
           handleAddUser={handleAddUser}
         />
 
-        {/* Add Tag Modal */}
+        <AddAdminModal
+          isOpen={addAdminModal}
+          toggle={toggleAddAdminModal}
+          handleAddAdmin={handleAddAdmin}
+        />
+
         <AddTagModal
           isOpen={addTagModal}
           toggle={toggleAddTagModal}
@@ -364,6 +465,21 @@ const AdminPanel = () => {
               openEditUserModal={openEditUserModal}
               handleDeleteUser={handleDeleteUser}
               toggleAddUserModal={toggleAddUserModal}
+            />
+          </div>
+        </Row>
+
+        <Row className="mt-5">
+          <div className="col">
+            <AdminsManagementTable
+              admins={currentAdmins}
+              currentPage={currentAdminPage}
+              totalPages={totalAdminPages}
+              paginateAdminsTable={paginateAdminsTable}
+              openEditAdminModal={openEditAdminModal}
+              handleDeleteAdmin={handleDeleteAdmin}
+              toggleAddAdminModal={toggleAddAdminModal}
+              currentAdminEmail={adminEmail}
             />
           </div>
         </Row>

@@ -7,8 +7,8 @@ namespace TagFlowApi.Models
         public string RoleName { get; set; } = "";
         public DateTime CreatedAt { get; set; }
         public int CreatedBy { get; set; }
-
         public Admin? CreatedByAdmin { get; set; }
         public ICollection<User> Users { get; set; } = new List<User>();
+        public string UpdatedBy { get; set; } = "";
     }
 }

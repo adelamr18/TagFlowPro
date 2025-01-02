@@ -9,6 +9,7 @@ namespace TagFlowApi.Dtos
         public string CreatedByEmail { get; set; } = "";
         public string CreatedByUserName { get; set; } = "";
         public List<int> AssignedUserIds { get; set; } = [];
+        public string UpdatedBy { get; set; } = "";
 
     }
 }

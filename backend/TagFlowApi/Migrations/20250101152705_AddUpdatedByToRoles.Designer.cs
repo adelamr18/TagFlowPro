@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TagFlowApi.Infrastructure;
 
@@ -11,9 +12,11 @@ using TagFlowApi.Infrastructure;
 namespace TagFlowApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250101152705_AddUpdatedByToRoles")]
+    partial class AddUpdatedByToRoles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,17 +44,9 @@ namespace TagFlowApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RoleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
 
                     b.Property<string>("UpdatedBy")
                         .IsRequired()
@@ -288,7 +283,6 @@ namespace TagFlowApi.Migrations
                     b.HasOne("TagFlowApi.Models.User", "UploadedByUser")
                         .WithMany("Files")
                         .HasForeignKey("UploadedBy")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("UploadedByUser");
@@ -299,19 +293,16 @@ namespace TagFlowApi.Migrations
                     b.HasOne("TagFlowApi.Models.File", "File")
                         .WithMany("FileRows")
                         .HasForeignKey("FileId")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.HasOne("TagFlowApi.Models.Tag", "Tag")
                         .WithMany("FileRows")
                         .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.HasOne("TagFlowApi.Models.TagValue", "TagValue")
                         .WithMany("FileRows")
                         .HasForeignKey("TagValueId")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("File");
@@ -326,7 +317,6 @@ namespace TagFlowApi.Migrations
                     b.HasOne("TagFlowApi.Models.Admin", "CreatedByAdmin")
                         .WithMany("Roles")
                         .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("CreatedByAdmin");
@@ -337,7 +327,6 @@ namespace TagFlowApi.Migrations
                     b.HasOne("TagFlowApi.Models.Admin", "CreatedByAdmin")
                         .WithMany("Tags")
                         .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("CreatedByAdmin");
@@ -348,13 +337,11 @@ namespace TagFlowApi.Migrations
                     b.HasOne("TagFlowApi.Models.Admin", "CreatedByAdmin")
                         .WithMany("TagValues")
                         .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.HasOne("TagFlowApi.Models.Tag", "Tag")
                         .WithMany("TagValues")
                         .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("CreatedByAdmin");
@@ -367,13 +354,11 @@ namespace TagFlowApi.Migrations
                     b.HasOne("TagFlowApi.Models.Admin", "CreatedByAdmin")
                         .WithMany("Users")
                         .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.HasOne("TagFlowApi.Models.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("CreatedByAdmin");
@@ -386,13 +371,11 @@ namespace TagFlowApi.Migrations
                     b.HasOne("TagFlowApi.Models.Tag", "Tag")
                         .WithMany("UserTagPermissions")
                         .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.HasOne("TagFlowApi.Models.User", "User")
                         .WithMany("UserTagPermissions")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("Tag");

@@ -13,7 +13,7 @@ interface RoleEditModalProps {
   isOpen: boolean;
   toggle: () => void;
   selectedRole: { roleId: number; roleName: string } | null;
-  updateRole: (roleId: number, roleName: string) => Promise<boolean>;
+  updateRole: (roleId: number, roleName: string) => void;
 }
 
 const RoleEditModal: React.FC<RoleEditModalProps> = ({
@@ -24,7 +24,6 @@ const RoleEditModal: React.FC<RoleEditModalProps> = ({
 }) => {
   const [updatedRoleName, setUpdatedRoleName] = useState<string>("");
 
-  // Update the input value when the modal opens with a selected role
   useEffect(() => {
     setUpdatedRoleName(selectedRole?.roleName || "");
   }, [selectedRole]);
@@ -36,10 +35,7 @@ const RoleEditModal: React.FC<RoleEditModalProps> = ({
     }
 
     if (selectedRole) {
-      const success = await updateRole(selectedRole.roleId, updatedRoleName);
-      if (success) {
-        toggle();
-      }
+      updateRole(selectedRole.roleId, updatedRoleName);
     }
   };
 

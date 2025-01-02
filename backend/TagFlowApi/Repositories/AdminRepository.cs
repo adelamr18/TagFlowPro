@@ -9,33 +9,41 @@ namespace TagFlowApi.Repositories
     {
         private readonly DataContext _context = context;
 
-        public IEnumerable<object> GetAllRolesWithAdminDetails()
+        public async Task<List<RoleDto>> GetAllRolesWithAdminDetails()
         {
-            var rolesWithAdmins = _context.Roles
+            var rolesWithAdmins = await _context.Roles
                 .Include(r => r.CreatedByAdmin)
-                .Select(r => new
+                .Select(r => new RoleDto
                 {
                     RoleId = r.RoleId,
                     RoleName = r.RoleName,
                     CreatedAt = r.CreatedAt,
-                    CreatedBy = r.CreatedByAdmin != null ? r.CreatedByAdmin.Username : null
+                    UpdatedBy = r.UpdatedBy,
+                    CreatedBy = r.CreatedByAdmin != null ? r.CreatedByAdmin.Email : null
                 })
-                .ToList();
+                .ToListAsync();
 
             return rolesWithAdmins;
         }
 
-        public async Task<bool> UpdateRoleNameAsync(int roleId, string newRoleName)
+
+        public async Task<bool> UpdateRoleNameAsync(int roleId, string newRoleName, string updatedBy)
         {
             if (string.IsNullOrWhiteSpace(newRoleName))
             {
                 throw new ArgumentException("Role name cannot be empty or null.", nameof(newRoleName));
             }
 
+            if (string.IsNullOrWhiteSpace(updatedBy))
+            {
+                throw new ArgumentException("UpdatedBy cannot be empty or null.", nameof(updatedBy));
+            }
+
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == roleId)
                 ?? throw new Exception($"Role with ID {roleId} not found.");
 
             role.RoleName = newRoleName;
+            role.UpdatedBy = updatedBy;
 
             try
             {
@@ -57,6 +65,7 @@ namespace TagFlowApi.Repositories
                 .Include(u => u.Role)
                 .Include(u => u.UserTagPermissions)
                     .ThenInclude(utp => utp.Tag)
+                    .Where(u => u.CreatedByAdmin == null || !u.CreatedByAdmin.IsDeleted)
                 .ToListAsync();
 
             var userDtos = users.Select(u => new UserDto
@@ -68,7 +77,8 @@ namespace TagFlowApi.Repositories
                 CreatedByAdminName = u.CreatedByAdmin != null ? u.CreatedByAdmin.Username : "",
                 RoleName = u.Role.RoleName,
                 RoleId = u.RoleId,
-                AssignedTags = u.UserTagPermissions?.Select(utp => utp.Tag.TagName ?? "").ToList() ?? []
+                AssignedTags = u.UserTagPermissions?.Select(utp => utp.Tag.TagName ?? "").ToList() ?? [],
+                UpdatedBy = u.UpdatedBy
             })
             .ToList();
 
@@ -83,6 +93,7 @@ namespace TagFlowApi.Repositories
                     .ThenInclude(tu => tu.User)
                 .Include(t => t.CreatedByAdmin)
                 .AsSplitQuery()
+                .Where(t => t.CreatedByAdmin == null || !t.CreatedByAdmin.IsDeleted)
                 .Select(t => new TagDto
                 {
                     TagId = t.TagId,
@@ -91,11 +102,13 @@ namespace TagFlowApi.Repositories
                     AssignedUsers = t.UserTagPermissions.Select(tu => tu.User.Username).ToList(),
                     CreatedByEmail = t.CreatedByAdmin != null ? t.CreatedByAdmin.Email : "",
                     CreatedByUserName = t.CreatedByAdmin != null ? t.CreatedByAdmin.Username : "",
+                    UpdatedBy = t.UpdatedBy
                 })
                 .ToListAsync();
 
             return tags;
         }
+
 
         public async Task<bool> UpdateTagAsync(TagUpdateDto tagUpdateDto)
         {
@@ -113,6 +126,7 @@ namespace TagFlowApi.Repositories
 
             tag.TagName = tagUpdateDto.TagName;
             tag.Description = tagUpdateDto.Description ?? tag.Description;
+            tag.UpdatedBy = tagUpdateDto.UpdatedBy;
 
             if (tagUpdateDto.TagValues != null && tagUpdateDto.TagValues.Any())
             {
@@ -361,7 +375,7 @@ namespace TagFlowApi.Repositories
 
             var user = await _context.Users
                 .Include(u => u.UserTagPermissions)
-                .ThenInclude(utp => utp.Tag) 
+                .ThenInclude(utp => utp.Tag)
                 .FirstOrDefaultAsync(u => u.UserId == userId);
 
             if (user == null)
@@ -396,6 +410,8 @@ namespace TagFlowApi.Repositories
                 _context.UserTagPermissions.RemoveRange(tagsToRemove);
             }
 
+            user.UpdatedBy = userUpdateDto.UpdatedBy;
+
             try
             {
                 _context.Users.Update(user);
@@ -405,6 +421,154 @@ namespace TagFlowApi.Repositories
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating user: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<List<AdminDto>> GetAllAdmins()
+        {
+            var admins = await _context.Admins
+                .Where(a => !a.IsDeleted)
+                .ToListAsync();
+
+            var adminDtos = admins.Select(a => new AdminDto
+            {
+                AdminId = a.AdminId,
+                Username = a.Username,
+                Email = a.Email,
+                CreatedByAdminEmail = a.CreatedBy != null ? a.CreatedBy : "",
+                UpdatedBy = a.UpdatedBy,
+                RoleId = a.RoleId
+            })
+            .ToList();
+
+            return adminDtos;
+        }
+
+        public async Task<bool> AddNewAdminAsync(CreateAdminDto adminCreateDto, string CreatedBy)
+        {
+            if (adminCreateDto == null)
+            {
+                throw new ArgumentException("adminCreateDto cannot be null.");
+            }
+
+            if (await _context.Admins.AnyAsync(a => a.Email == adminCreateDto.Email))
+            {
+                throw new Exception("Admin with the given email already exists.");
+            }
+
+            if (await _context.Admins.AnyAsync(a => a.Username == adminCreateDto.Username))
+            {
+                throw new Exception("Admin with the given username already exists.");
+            }
+
+            var creatorAdmin = await _context.Admins
+                               .FirstOrDefaultAsync(a => a.Email.Trim() == adminCreateDto.CreatedBy.Trim());
+            if (creatorAdmin == null)
+            {
+                throw new Exception("Admin performing the creation not found.");
+            }
+
+            var hashedPassword = Utils.Helpers.HashPassword(adminCreateDto.Password);
+
+            var newAdmin = new Admin
+            {
+                Username = adminCreateDto.Username,
+                Email = adminCreateDto.Email,
+                PasswordHash = hashedPassword,
+                CreatedBy = adminCreateDto.CreatedBy,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            try
+            {
+                await _context.Admins.AddAsync(newAdmin);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating admin: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateAdminAsync(int adminId, UpdateAdminDto updateAdminDto, string updatedBy)
+        {
+            if (updateAdminDto == null)
+            {
+                throw new ArgumentException("UpdateAdminDto cannot be null.");
+            }
+
+            var updatingAdmin = await _context.Admins
+                                .FirstOrDefaultAsync(a => a.Email.Trim() == updateAdminDto.UpdatedBy.Trim());
+
+            if (updatingAdmin == null)
+            {
+                throw new Exception("Admin performing the update not found.");
+            }
+
+            var admin = await _context.Admins
+                .FirstOrDefaultAsync(a => a.AdminId == adminId);
+
+            if (admin == null)
+            {
+                throw new Exception($"Admin with ID {adminId} not found.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateAdminDto.Username))
+            {
+                admin.Username = updateAdminDto.Username;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateAdminDto.UpdatedBy))
+            {
+                admin.UpdatedBy = updateAdminDto.UpdatedBy;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateAdminDto.Email))
+            {
+                var isEmailTaken = await _context.Admins.AnyAsync(a => a.Email == updateAdminDto.Email && a.AdminId != adminId);
+                if (isEmailTaken)
+                {
+                    throw new Exception($"Email {updateAdminDto.Email} is already in use.");
+                }
+                admin.Email = updateAdminDto.Email;
+            }
+
+            try
+            {
+                _context.Admins.Update(admin);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating admin: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteAdminAsync(int adminId)
+        {
+            var admin = await _context.Admins
+                .FirstOrDefaultAsync(a => a.AdminId == adminId);
+
+            if (admin == null)
+            {
+                throw new Exception($"Admin with ID {adminId} not found.");
+            }
+
+            admin.IsDeleted = true;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting admin: {ex.Message}");
                 return false;
             }
         }

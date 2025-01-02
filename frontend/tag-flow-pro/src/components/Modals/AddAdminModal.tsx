@@ -11,50 +11,30 @@ import {
   Input,
   FormFeedback,
 } from "reactstrap";
-import Select from "react-select";
-import { Tag } from "types/Tag";
-import { Role } from "types/Role";
-import { User } from "types/User";
 import { useAuth } from "context/AuthContext";
+import { AddAdminDetails } from "types/AddAdminDetails";
+import { ADMIN_ROLE_ID } from "shared/consts";
 
-interface AddUserModalProps {
+interface AddAdminModalProps {
   isOpen: boolean;
   toggle: () => void;
-  roles: Role[];
-  tags: Tag[];
-  handleAddUser: (userDetails: User) => void;
+  handleAddAdmin: (adminDetails: AddAdminDetails) => void;
 }
 
-const AddUserModal: React.FC<AddUserModalProps> = ({
+const AddAdminModal: React.FC<AddAdminModalProps> = ({
   isOpen,
   toggle,
-  roles,
-  tags,
-  handleAddUser,
+  handleAddAdmin,
 }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
-  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
-  const [assignedTags, setAssignedTags] = useState<number[]>([]);
   const [isEmailInvalid, setIsEmailInvalid] = useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
   const { adminEmail } = useAuth();
-
-  const roleOptions = roles
-    .filter((role) => role.roleId !== 1)
-    .map((role) => ({
-      value: role.roleId,
-      label: role.roleName,
-    }));
-
-  const tagOptions = tags.map((tag) => ({
-    value: tag.tagId,
-    label: tag.tagName,
-  }));
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex =
@@ -94,18 +74,10 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
     }
   };
 
-  const handleRoleChange = (selectedOption: any) => {
-    setSelectedRoleId(selectedOption ? selectedOption.value : null);
-  };
-
-  const handleTagChange = (selectedOptions: any) => {
-    setAssignedTags(selectedOptions.map((option: any) => option.value));
-  };
-
   const validateForm = () => {
     let isValid = true;
 
-    if (!username || !password || !email || !selectedRoleId) {
+    if (!username || !password || !email) {
       setFormErrorMessage("All fields must be non-empty.");
       isValid = false;
     } else {
@@ -124,16 +96,14 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
       return;
     }
 
-    handleAddUser({
-      username,
+    handleAddAdmin({
+      userName: username,
       password,
       email,
-      roleId: selectedRoleId,
-      assignedTagIds: assignedTags,
-      createdByAdminEmail: adminEmail,
+      roleId: ADMIN_ROLE_ID,
+      createdBy: adminEmail,
     });
 
-    toggle();
     resetForm();
   };
 
@@ -141,8 +111,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
     setUsername("");
     setPassword("");
     setEmail("");
-    setSelectedRoleId(null);
-    setAssignedTags([]);
     setFormErrorMessage(null);
     setIsEmailInvalid(false);
     setIsPasswordInvalid(false);
@@ -156,7 +124,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} toggle={toggle}>
-      <ModalHeader toggle={toggle}>Add New User</ModalHeader>
+      <ModalHeader toggle={toggle}>Add New Admin</ModalHeader>
       <ModalBody>
         {formErrorMessage && (
           <div className="alert alert-danger">{formErrorMessage}</div>
@@ -195,34 +163,11 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
             />
             {isEmailInvalid && <FormFeedback>{emailErrorMessage}</FormFeedback>}
           </FormGroup>
-          <FormGroup>
-            <Label for="role">Role</Label>
-            <Select
-              id="role"
-              value={roleOptions.find((role) => role.value === selectedRoleId)}
-              options={roleOptions}
-              onChange={handleRoleChange}
-              placeholder="Select Role"
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label for="tags">Tags</Label>
-            <Select
-              id="tags"
-              isMulti
-              value={tagOptions.filter((tag) =>
-                assignedTags.includes(tag.value)
-              )}
-              options={tagOptions}
-              onChange={handleTagChange}
-              placeholder="Assign Tags"
-            />
-          </FormGroup>
         </Form>
       </ModalBody>
       <ModalFooter>
         <Button color="primary" onClick={handleSubmit}>
-          Add User
+          Add Admin
         </Button>{" "}
         <Button color="secondary" onClick={toggle}>
           Cancel
@@ -232,4 +177,4 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
   );
 };
 
-export default AddUserModal;
+export default AddAdminModal;

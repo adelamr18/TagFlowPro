@@ -35,6 +35,7 @@ const TagsManagementTable = ({
         );
       },
     },
+    { header: "Created By", accessor: "createdByEmail" },
     {
       header: "Assigned Users",
       accessor: "assignedUsers",
@@ -43,8 +44,7 @@ const TagsManagementTable = ({
           ? tag.assignedUsers.join(", ")
           : "No assigned users",
     },
-    { header: "Created By UserName", accessor: "createdByUserName" },
-    { header: "Created By Email", accessor: "createdByEmail" },
+    { header: "Updated By", accessor: "updatedBy" },
     {
       header: "Actions",
       accessor: "",

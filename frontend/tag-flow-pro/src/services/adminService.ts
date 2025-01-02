@@ -6,6 +6,9 @@ import { User } from "types/User";
 import { UpdateTagDetails } from "types/UpdateTagDetails";
 import { AddTagDetails } from "types/AddTagDetails";
 import { UpdateUserDetails } from "types/UpdateUserDetails";
+import { Admin } from "types/Admin";
+import { UpdateAdminDetails } from "types/UpdateAdminDetails";
+import { AddAdminDetails } from "types/AddAdminDetails";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -28,12 +31,14 @@ const adminService = {
 
   updateRole: async (
     roleId: number,
-    newRoleName: string
+    newRoleName: string,
+    updatedBy: string
   ): Promise<ApiResponse<null>> => {
     try {
       const response = await axios.put(`${MAIN_URL}/update-role`, {
         roleId,
         newRoleName,
+        updatedBy,
       });
       return { success: true, message: response.data.message };
     } catch (error) {
@@ -52,6 +57,16 @@ const adminService = {
       return response.data.tags;
     } catch (error) {
       console.error("Error fetching tags:", error);
+      throw error;
+    }
+  },
+
+  getAllAdmins: async (): Promise<Admin[]> => {
+    try {
+      const response = await axios.get(`${MAIN_URL}/get-all-admins`);
+      return response.data.admins;
+    } catch (error) {
+      console.error("Error fetching admins:", error);
       throw error;
     }
   },
@@ -178,6 +193,58 @@ const adminService = {
         message:
           error.response?.data?.message ||
           "An error occurred while creating the user.",
+      };
+    }
+  },
+
+  updateAdmin: async (
+    adminId: number,
+    adminDetails: UpdateAdminDetails
+  ): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.put(
+        `${MAIN_URL}/update-admin/${adminId}`,
+        adminDetails
+      );
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while updating the admin.",
+      };
+    }
+  },
+
+  addAdmin: async (
+    adminDetails: AddAdminDetails
+  ): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.post(`${MAIN_URL}/add-admin`, adminDetails);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while creating the admin.",
+      };
+    }
+  },
+
+  deleteAdmin: async (adminId: number): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.delete(
+        `${MAIN_URL}/delete-admin/${adminId}`
+      );
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while deleting the admin.",
       };
     }
   },

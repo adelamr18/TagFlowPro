@@ -4,8 +4,9 @@ import { API_URL } from "shared/consts";
 interface LoginResponse {
   success: boolean;
   message: string;
-  token?: string;
-  userName?: string;
+  token: string;
+  userName: string;
+  roleId: number;
 }
 
 interface AuthResponse {
@@ -27,6 +28,7 @@ const authService = {
         message: response.data.message,
         token: response.data.token,
         userName: response.data.userName,
+        roleId: response.data.roleId,
       };
     } catch (error) {
       return {
@@ -34,6 +36,8 @@ const authService = {
         message:
           error.response?.data?.message || "Login failed. Please try again.",
         userName: "",
+        roleId: 0,
+        token: "",
       };
     }
   },
