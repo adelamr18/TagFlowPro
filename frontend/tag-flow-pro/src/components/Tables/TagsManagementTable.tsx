@@ -1,6 +1,19 @@
 import TableWrapper from "components/Tables/TableWrapper";
 import { Button } from "reactstrap";
+import { TAGS_PLACEHOLDER } from "shared/consts";
 import { Tag } from "types/Tag";
+
+interface TagsManagementTableProps {
+  tags: Tag[];
+  currentPage: number;
+  totalPages: number;
+  paginateTagsTable: (page: number) => void;
+  openEditTagModal: (tag: Tag) => void;
+  openTagValuesModal: (tag: Tag) => void;
+  toggleAddTagModal: () => void;
+  handleDeleteOuterTag: (tag: Tag) => void;
+  onSearch: (searchQuery: string) => void;
+}
 
 const TagsManagementTable = ({
   tags,
@@ -11,13 +24,14 @@ const TagsManagementTable = ({
   openTagValuesModal,
   toggleAddTagModal,
   handleDeleteOuterTag,
-}) => {
+  onSearch,
+}: TagsManagementTableProps) => {
   const columns = [
     { header: "Tag Name", accessor: "tagName" },
     {
       header: "Tag Values",
       accessor: "tagValues",
-      render: (tag) => {
+      render: (tag: Tag) => {
         const { tagValues } = tag;
         return tagValues.length > 3 ? (
           <>
@@ -76,6 +90,8 @@ const TagsManagementTable = ({
       toggleAddModal={toggleAddTagModal}
       canShowAddButton={true}
       addButtonHeader="Add New Tag"
+      searchPlaceholder={TAGS_PLACEHOLDER}
+      onSearch={onSearch}
     />
   );
 };

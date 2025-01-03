@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -7,6 +8,9 @@ import {
   PaginationItem,
   PaginationLink,
   Button,
+  InputGroup,
+  Input,
+  InputGroupAddon,
 } from "reactstrap";
 
 interface TableColumn {
@@ -25,6 +29,8 @@ interface TableWrapperProps {
   toggleAddModal?: () => void;
   canShowAddButton: boolean;
   addButtonHeader?: string;
+  onSearch?: (searchTerm: string) => void;
+  searchPlaceholder: string;
 }
 
 const TableWrapper: React.FC<TableWrapperProps> = ({
@@ -37,12 +43,39 @@ const TableWrapper: React.FC<TableWrapperProps> = ({
   toggleAddModal,
   canShowAddButton,
   addButtonHeader,
+  onSearch,
+  searchPlaceholder,
 }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    if (onSearch) {
+      onSearch(value);
+    }
+  };
+
   return (
     <div className="col">
       <Card className="shadow">
-        <CardHeader className="border-0">
+        <CardHeader className="border-0 d-flex justify-content-between align-items-center">
           <h3 className="mb-0">{title}</h3>
+          {searchPlaceholder && (
+            <InputGroup className="w-25" style={{ fontSize: "0.875rem" }}>
+              <Input
+                type="text"
+                placeholder={searchPlaceholder}
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+              <InputGroupAddon addonType="append">
+                <Button color="primary" size="sm">
+                  <i className="fas fa-search" />
+                </Button>
+              </InputGroupAddon>
+            </InputGroup>
+          )}
         </CardHeader>
         <Table className="align-items-center table-flush" responsive>
           <thead className="thead-light">

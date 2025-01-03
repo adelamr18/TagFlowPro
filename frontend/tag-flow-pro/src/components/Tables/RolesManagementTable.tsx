@@ -1,6 +1,16 @@
 import TableWrapper from "components/Tables/TableWrapper";
 import { Button } from "reactstrap";
 import { Role } from "types/Role";
+import { Tag } from "types/Tag";
+
+interface RolesManagementTableProps {
+  roles: Role[];
+  currentPage: number;
+  totalPages: number;
+  paginateRolesTable: (page: number) => void;
+  getPermissions: (roleId: number) => string;
+  openEditRoleModal: (role: Role) => void;
+}
 
 const RolesManagementTable = ({
   roles,
@@ -9,7 +19,7 @@ const RolesManagementTable = ({
   paginateRolesTable,
   getPermissions,
   openEditRoleModal,
-}) => {
+}: RolesManagementTableProps) => {
   const columns = [
     { header: "Role Name", accessor: "roleName" },
     { header: "Created By", accessor: "createdBy" },
@@ -40,6 +50,7 @@ const RolesManagementTable = ({
       onPageChange={paginateRolesTable}
       canShowAddButton={false}
       toggleAddModal={() => {}}
+      searchPlaceholder=""
     />
   );
 };

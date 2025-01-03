@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import TableWrapper from "components/Tables/TableWrapper";
 import { User } from "types/User";
+import { USERS_AND_ADMINS_SEARCH_PLACEHOLDER } from "shared/consts";
 
 interface UsersManagementTableProps {
   users: User[];
@@ -11,6 +12,8 @@ interface UsersManagementTableProps {
   openEditUserModal: (user: User) => void;
   handleDeleteUser: (userId: number) => void;
   toggleAddUserModal: () => void;
+  onSearch: (searchValue: string) => void;
+  searchPlaceholder?: string;
 }
 
 const UsersManagementTable: React.FC<UsersManagementTableProps> = ({
@@ -21,6 +24,8 @@ const UsersManagementTable: React.FC<UsersManagementTableProps> = ({
   openEditUserModal,
   handleDeleteUser,
   toggleAddUserModal,
+  onSearch,
+  searchPlaceholder,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUserTags, setSelectedUserTags] = useState<string[]>([]);
@@ -98,6 +103,8 @@ const UsersManagementTable: React.FC<UsersManagementTableProps> = ({
         toggleAddModal={toggleAddUserModal}
         canShowAddButton={true}
         addButtonHeader="Add User"
+        onSearch={onSearch}
+        searchPlaceholder={USERS_AND_ADMINS_SEARCH_PLACEHOLDER}
       />
       {/* Modal for Assigned Tags */}
       <Modal isOpen={modalOpen} toggle={toggleModal}>

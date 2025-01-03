@@ -4,7 +4,12 @@ import { useAdmin } from "context/AdminContext.tsx";
 import { User } from "types/User";
 import { Tag } from "types/Tag";
 import { Role } from "types/Role";
-import { ITEMS_PER_PAGE } from "shared/consts";
+import {
+  ADMINS_TABLE_TYPE,
+  ITEMS_PER_PAGE,
+  TAGS_TABLE_TYPE,
+  USERS_TABLE_TYPE,
+} from "shared/consts";
 import RoleEditModal from "components/Modals/RoleEditModal";
 import TagEditModal from "components/Modals/TagEditModal";
 import TagValuesModal from "components/Modals/TagValuesModal";
@@ -51,6 +56,11 @@ const AdminPanel = () => {
   } = useAdmin();
   const { adminUsername, adminEmail, currentRoleId } = useAuth();
 
+  // Utilility functions: Tables Management
+  const [adminSearchTerm, setAdminSearchTerm] = useState("");
+  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [tagSearchTerm, setTagSearchTerm] = useState("");
+
   // State: Roles Management
   const [currentRolePage, setCurrentRolePage] = useState(1);
   const [roleModal, setRoleModal] = useState(false);
@@ -60,7 +70,6 @@ const AdminPanel = () => {
   const indexOfLastRole = currentRolePage * rolesPerPage;
   const indexOfFirstRole = indexOfLastRole - rolesPerPage;
   const currentRoles = (roles || []).slice(indexOfFirstRole, indexOfLastRole);
-  console.log(currentRoleId);
 
   // State: Tags Management
   const [currentTagPage, setCurrentTagPage] = useState(1);
@@ -73,27 +82,46 @@ const AdminPanel = () => {
     []
   );
   const [updatedTagValues, setUpdatedTagValues] = useState("");
-  const totalTagParentPages = Math.ceil((tags?.length || 0) / ITEMS_PER_PAGE);
+  const filteredTags = (tags || []).filter((tag) =>
+    tag.tagName.toLowerCase().includes(tagSearchTerm.toLowerCase())
+  );
+  const totalTagParentPages = Math.ceil(
+    (filteredTags?.length || 0) / ITEMS_PER_PAGE
+  );
   const indexOfLastTag = currentTagPage * ITEMS_PER_PAGE;
   const indexOfFirstTag = indexOfLastTag - ITEMS_PER_PAGE;
-  const currentTags = (tags || []).slice(indexOfFirstTag, indexOfLastTag);
+  const currentTags = filteredTags.slice(indexOfFirstTag, indexOfLastTag);
   const [currentEditTagPage, setCurrentEditTagPage] = useState(1);
 
   // State: Users Management
   const [userModal, setUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentUserPage, setCurrentUserPage] = useState(1);
-  const totalUserPages = Math.ceil((users?.length || 0) / ITEMS_PER_PAGE);
+  const filteredUsers = (users || []).filter(
+    (admin) =>
+      admin.username.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+      admin.email.toLowerCase().includes(userSearchTerm.toLowerCase())
+  );
+  const totalUserPages = Math.ceil(
+    (filteredUsers?.length || 0) / ITEMS_PER_PAGE
+  );
   const indexOfLastUser = currentUserPage * ITEMS_PER_PAGE;
   const indexOfFirstUser = indexOfLastUser - ITEMS_PER_PAGE;
-  const currentUsers = (users || []).slice(indexOfFirstUser, indexOfLastUser);
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
   // State: Admins Management
   const [currentAdminPage, setCurrentAdminPage] = useState(1);
-  const totalAdminPages = Math.ceil((admins?.length || 0) / ITEMS_PER_PAGE);
+  const filteredAdmins = (admins || []).filter(
+    (admin) =>
+      admin.username.toLowerCase().includes(adminSearchTerm.toLowerCase()) ||
+      admin.email.toLowerCase().includes(adminSearchTerm.toLowerCase())
+  );
+  const totalAdminPages = Math.ceil(
+    (filteredAdmins.length || 0) / ITEMS_PER_PAGE
+  );
   const indexOfLastAdmin = currentAdminPage * ITEMS_PER_PAGE;
   const indexOfFirstAdmin = indexOfLastAdmin - ITEMS_PER_PAGE;
-  const currentAdmins = (admins || []).slice(
+  const currentAdmins = filteredAdmins.slice(
     indexOfFirstAdmin,
     indexOfLastAdmin
   );
@@ -310,6 +338,21 @@ const AdminPanel = () => {
     }
   };
 
+  const handleOnSearchTable = (searchValue: string, tableType: string) => {
+    if (tableType === ADMINS_TABLE_TYPE) {
+      setAdminSearchTerm(searchValue.toLowerCase());
+      setCurrentAdminPage(1);
+    }
+    if (tableType === USERS_TABLE_TYPE) {
+      setUserSearchTerm(searchValue.toLowerCase());
+      setCurrentUserPage(1);
+    }
+    if (tableType === TAGS_TABLE_TYPE) {
+      setTagSearchTerm(searchValue.toLowerCase().trim());
+      setCurrentTagPage(1);
+    }
+  };
+
   // Modal Toggle Functions
   const toggleRoleModal = () => setRoleModal(!roleModal);
   const toggleTagValuesModal = () => setTagValuesModal(!tagValuesModal);
@@ -451,6 +494,9 @@ const AdminPanel = () => {
               openTagValuesModal={openTagValuesModal}
               toggleAddTagModal={toggleAddTagModal}
               handleDeleteOuterTag={handleDeleteOuterTag}
+              onSearch={(searchValue) =>
+                handleOnSearchTable(searchValue, TAGS_TABLE_TYPE)
+              }
             />
           </div>
         </Row>
@@ -465,6 +511,9 @@ const AdminPanel = () => {
               openEditUserModal={openEditUserModal}
               handleDeleteUser={handleDeleteUser}
               toggleAddUserModal={toggleAddUserModal}
+              onSearch={(searchValue) =>
+                handleOnSearchTable(searchValue, USERS_TABLE_TYPE)
+              }
             />
           </div>
         </Row>
@@ -480,6 +529,9 @@ const AdminPanel = () => {
               handleDeleteAdmin={handleDeleteAdmin}
               toggleAddAdminModal={toggleAddAdminModal}
               currentAdminEmail={adminEmail}
+              onSearch={(searchValue) =>
+                handleOnSearchTable(searchValue, ADMINS_TABLE_TYPE)
+              }
             />
           </div>
         </Row>
