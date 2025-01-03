@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "reactstrap";
 import TableWrapper from "components/Tables/TableWrapper";
 import { Admin } from "types/Admin";
+import { USERS_AND_ADMINS_SEARCH_PLACEHOLDER } from "shared/consts";
 
 interface AdminsManagementProps {
   admins: Admin[];
@@ -12,6 +13,7 @@ interface AdminsManagementProps {
   handleDeleteAdmin: (adminId: number) => void;
   toggleAddAdminModal: () => void;
   currentAdminEmail: string;
+  onSearch?: (value: string) => void;
 }
 
 const AdminsManagementTable: React.FC<AdminsManagementProps> = ({
@@ -23,6 +25,7 @@ const AdminsManagementTable: React.FC<AdminsManagementProps> = ({
   handleDeleteAdmin,
   toggleAddAdminModal,
   currentAdminEmail,
+  onSearch,
 }) => {
   const columns = [
     { header: "Username", accessor: "username" },
@@ -70,6 +73,8 @@ const AdminsManagementTable: React.FC<AdminsManagementProps> = ({
         toggleAddModal={toggleAddAdminModal}
         canShowAddButton={true}
         addButtonHeader="Add Admin"
+        onSearch={onSearch}
+        searchPlaceholder={USERS_AND_ADMINS_SEARCH_PLACEHOLDER}
       />
     </>
   );
