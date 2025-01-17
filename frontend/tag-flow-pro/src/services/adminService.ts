@@ -9,12 +9,7 @@ import { UpdateUserDetails } from "types/UpdateUserDetails";
 import { Admin } from "types/Admin";
 import { UpdateAdminDetails } from "types/UpdateAdminDetails";
 import { AddAdminDetails } from "types/AddAdminDetails";
-
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
+import { ApiResponse } from "types/ApiResponse";
 
 const MAIN_URL = `${API_URL}/admin`;
 

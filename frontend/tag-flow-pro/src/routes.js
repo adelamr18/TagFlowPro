@@ -3,7 +3,8 @@ import Login from "views/Login";
 import AdminPanel from "views/AdminPanel";
 import ForgetPassword from "views/ForgetPassword";
 import ProtectedRoute from "components/Utils/ProtectedRoute.tsx";
-import Logout from "views/Logout"; // Import the Logout component
+import Logout from "views/Logout";
+import FileUpload from "views/FileUpload";
 
 var routes = [
   {
@@ -38,6 +39,17 @@ var routes = [
     component: (
       <ProtectedRoute>
         <AdminPanel />
+      </ProtectedRoute>
+    ),
+    layout: "/admin",
+  },
+  {
+    path: "/file-upload",
+    name: "File Upload",
+    icon: "ni ni-cloud-upload-96 text-blue",
+    component: (
+      <ProtectedRoute>
+        <FileUpload />
       </ProtectedRoute>
     ),
     layout: "/admin",

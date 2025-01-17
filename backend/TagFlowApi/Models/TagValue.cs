@@ -1,4 +1,3 @@
-// TagFlowApi/Models/TagValue.cs
 namespace TagFlowApi.Models
 {
     public class TagValue
@@ -15,7 +14,7 @@ namespace TagFlowApi.Models
         public int CreatedBy { get; set; }
         public Admin? CreatedByAdmin { get; set; }
 
-        // One-to-many relationship with file rows
-        public ICollection<FileRow> FileRows { get; set; } = new List<FileRow>();
+        // Many-to-many relationship with FileTags (instead of FileRows)
+        public ICollection<FileTag> FileTags { get; set; } = new List<FileTag>();
     }
 }

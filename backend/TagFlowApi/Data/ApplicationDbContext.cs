@@ -17,6 +17,7 @@ namespace TagFlowApi.Data
         public DbSet<TagValue> TagValues { get; set; } = null!;
         public DbSet<UserTagPermission> UserTagPermissions { get; set; } = null!;
         public DbSet<File> Files { get; set; } = null!;
+        public DbSet<FileTag> FileTags { get; set; } = null!;
         public DbSet<FileRow> FileRows { get; set; } = null!;
     }
 }

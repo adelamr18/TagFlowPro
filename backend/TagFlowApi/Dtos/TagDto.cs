@@ -10,6 +10,6 @@ namespace TagFlowApi.Dtos
         public string CreatedByUserName { get; set; } = "";
         public List<int> AssignedUserIds { get; set; } = [];
         public string UpdatedBy { get; set; } = "";
-
+        public List<int> TagValuesIds { get; set; } = [];
     }
 }

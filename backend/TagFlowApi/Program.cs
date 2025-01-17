@@ -10,6 +10,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 // Register repositories and other services
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<FileRepository>();
 builder.Services.AddScoped<AdminRepository>();
 builder.Services.AddSingleton<JwtService>();
 

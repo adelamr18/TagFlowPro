@@ -1,7 +1,6 @@
 import TableWrapper from "components/Tables/TableWrapper";
 import { Button } from "reactstrap";
 import { Role } from "types/Role";
-import { Tag } from "types/Tag";
 
 interface RolesManagementTableProps {
   roles: Role[];

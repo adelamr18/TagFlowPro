@@ -54,7 +54,7 @@ const AdminPanel = () => {
     addAdmin,
     deleteAdmin,
   } = useAdmin();
-  const { adminUsername, adminEmail, currentRoleId } = useAuth();
+  const { userName, userEmail } = useAuth();
 
   // Utilility functions: Tables Management
   const [adminSearchTerm, setAdminSearchTerm] = useState("");
@@ -174,7 +174,7 @@ const AdminPanel = () => {
   };
 
   const handleUpdateRole = async (roleId: number, roleName: string) => {
-    const success = await updateRole(selectedRole.roleId, roleName, adminEmail);
+    const success = await updateRole(selectedRole.roleId, roleName, userEmail);
 
     if (success) {
       toggleRoleModal();
@@ -201,7 +201,7 @@ const AdminPanel = () => {
     userId: number,
     userDetails: UpdateUserDetails
   ) => {
-    const userDetailsUpdated = { ...userDetails, updatedBy: adminEmail };
+    const userDetailsUpdated = { ...userDetails, updatedBy: userEmail };
     const success = await updateUser(userId, userDetailsUpdated);
 
     if (success) {
@@ -285,7 +285,7 @@ const AdminPanel = () => {
       tagValues: editedTagValues,
       updatedByAdminId: null,
       assignedUsers,
-      updatedBy: adminEmail,
+      updatedBy: userEmail,
     };
     const success = await updateTag(updatedTag);
     if (success) {
@@ -298,7 +298,7 @@ const AdminPanel = () => {
       tagName: tagName,
       tagValues: tagValues,
       assignedUsers: assignedUsers.map((user) => user.label),
-      adminUsername,
+      adminUsername: userName,
     };
 
     const success = await createTag(tagDetails);
@@ -436,7 +436,7 @@ const AdminPanel = () => {
           isOpen={editAdminModal}
           toggle={toggleEditAdminModal}
           admin={selectedAdmin}
-          updatedBy={adminEmail}
+          updatedBy={userEmail}
           updateAdmin={handleUpdateAdmin}
         />
 
@@ -528,7 +528,7 @@ const AdminPanel = () => {
               openEditAdminModal={openEditAdminModal}
               handleDeleteAdmin={handleDeleteAdmin}
               toggleAddAdminModal={toggleAddAdminModal}
-              currentAdminEmail={adminEmail}
+              currentAdminEmail={userEmail}
               onSearch={(searchValue) =>
                 handleOnSearchTable(searchValue, ADMINS_TABLE_TYPE)
               }

@@ -1,10 +1,13 @@
 import { AuthProvider } from "./AuthContext.tsx";
 import { AdminProvider } from "./AdminContext.tsx";
+import { FileProvider } from "./FileContext.tsx";
 
 const ContextProvider = ({ children }) => {
   return (
     <AuthProvider>
-      <AdminProvider>{children}</AdminProvider>
+      <AdminProvider>
+        <FileProvider>{children}</FileProvider>
+      </AdminProvider>
     </AuthProvider>
   );
 };

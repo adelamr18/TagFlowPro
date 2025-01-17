@@ -62,7 +62,7 @@ const TableWrapper: React.FC<TableWrapperProps> = ({
         <CardHeader className="border-0 d-flex justify-content-between align-items-center">
           <h3 className="mb-0">{title}</h3>
           {searchPlaceholder && (
-            <InputGroup className="w-25" style={{ fontSize: "0.875rem" }}>
+            <InputGroup className="w-50" style={{ fontSize: "0.875rem" }}>
               <Input
                 type="text"
                 placeholder={searchPlaceholder}

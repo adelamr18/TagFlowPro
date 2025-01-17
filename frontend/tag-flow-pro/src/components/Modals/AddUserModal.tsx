@@ -42,7 +42,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
   const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
-  const { adminEmail } = useAuth();
+  const { userEmail } = useAuth();
 
   const roleOptions = roles
     .filter((role) => role.roleId !== 1)
@@ -130,7 +130,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
       email,
       roleId: selectedRoleId,
       assignedTagIds: assignedTags,
-      createdByAdminEmail: adminEmail,
+      createdByAdminEmail: userEmail,
     });
 
     toggle();

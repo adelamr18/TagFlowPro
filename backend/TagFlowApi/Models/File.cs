@@ -1,4 +1,5 @@
-// TagFlowApi/Models/File.cs
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace TagFlowApi.Models
 {
     public class File
@@ -6,12 +7,13 @@ namespace TagFlowApi.Models
         public int FileId { get; set; }
         public string FileName { get; set; } = "";
         public DateTime CreatedAt { get; set; }
+        public string FileStatus { get; set; } = "";
+        public int FileRowsCounts { get; set; } = 0;
+        public string UploadedByUserName { get; set; } = "";
+        public string DownloadLink { get; set; } = "";
 
-        // Foreign key to User table (who uploaded the file)
-        public int UploadedBy { get; set; }
-        public User UploadedByUser { get; set; } = null!;
-
-        // One-to-many relationship with file rows
+        // One-to-many relationship with FileTags
+        public ICollection<FileTag> FileTags { get; set; } = new List<FileTag>();
         public ICollection<FileRow> FileRows { get; set; } = new List<FileRow>();
     }
 }
