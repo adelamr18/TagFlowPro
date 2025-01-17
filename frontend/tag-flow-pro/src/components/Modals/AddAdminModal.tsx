@@ -34,7 +34,7 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
   const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
-  const { adminEmail } = useAuth();
+  const { userEmail } = useAuth();
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex =
@@ -101,7 +101,7 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
       password,
       email,
       roleId: ADMIN_ROLE_ID,
-      createdBy: adminEmail,
+      createdBy: userEmail,
     });
 
     resetForm();

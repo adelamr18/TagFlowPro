@@ -1,11 +1,11 @@
-namespace TagFlowApi.Models
+namespace TagFlowApi.DTOs
 {
-    public class FileRow
+    public class FileRowDto
     {
         public int FileRowId { get; set; }
-        public int FileId { get; set; }
-        public string SsnId { get; set; } = "";
         public string Status { get; set; } = "Unprocessed";
+        public int FileId { get; set; }
+        public string Ssn { get; set; } = "";
         public string InsuranceCompany { get; set; } = "";
         public string MedicalNetwork { get; set; } = "";
         public string IdentityNumber { get; set; } = "";
@@ -17,8 +17,5 @@ namespace TagFlowApi.Models
         public string InsuranceExpiryDate { get; set; } = "";
         public string BeneficiaryType { get; set; } = "";
         public string BeneficiaryNumber { get; set; } = "";
-
-        // Navigation property
-        public File File { get; set; } = null!;
     }
 }

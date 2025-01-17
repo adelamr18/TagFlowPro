@@ -15,7 +15,7 @@ import { useState } from "react";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useAuth } from "context/AuthContext.tsx";
+import { useAuth } from "context/AuthContext";
 
 const ForgetPassword = () => {
   const { forgetPassword } = useAuth();

@@ -14,7 +14,7 @@ import {
   FormFeedback,
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "context/AuthContext.tsx";
+import { useAuth } from "context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();

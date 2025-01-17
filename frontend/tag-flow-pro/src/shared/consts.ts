@@ -7,3 +7,6 @@ export const USERS_AND_ADMINS_SEARCH_PLACEHOLDER =
   "Search with a username or an email";
 export const TAGS_TABLE_TYPE = "Tags";
 export const TAGS_PLACEHOLDER = "Search with a tag name";
+export const OPERATOR_ROLE_ID = 2;
+export const VIEWER_ROLE_ID = 3;
+export const UNPROCESSED_FILE_STATUS = "Unprocessed";

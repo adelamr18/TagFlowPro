@@ -1,4 +1,3 @@
-// TagFlowApi/Models/Tag.cs
 namespace TagFlowApi.Models
 {
     public class Tag
@@ -14,8 +13,8 @@ namespace TagFlowApi.Models
         public ICollection<TagValue> TagValues { get; set; } = new List<TagValue>();
         // Many-to-many relationship with Users through UserTagPermissions
         public ICollection<UserTagPermission> UserTagPermissions { get; set; } = new List<UserTagPermission>();
-        // Many-to-one relationship with file rows
-        public ICollection<FileRow> FileRows { get; set; } = new List<FileRow>();
+        // Many-to-many relationship with Files through FileTags
+        public ICollection<FileTag> FileTags { get; set; } = new List<FileTag>();
         public string UpdatedBy { get; set; } = "";
     }
 }

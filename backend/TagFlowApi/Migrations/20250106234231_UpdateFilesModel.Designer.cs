@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TagFlowApi.Infrastructure;
 
@@ -11,9 +12,11 @@ using TagFlowApi.Infrastructure;
 namespace TagFlowApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250106234231_UpdateFilesModel")]
+    partial class UpdateFilesModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,10 +83,6 @@ namespace TagFlowApi.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("DownloadLink")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -95,99 +94,36 @@ namespace TagFlowApi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UploadedByUserName")
-                        .IsRequired()
+                    b.Property<int?>("TagValue")
+                        .HasColumnType("int");
+
+                    b.PrimitiveCollection<string>("TagValuesIds")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UserId")
+                    b.Property<int>("UploadedBy")
                         .HasColumnType("int");
 
                     b.HasKey("FileId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UploadedBy");
 
                     b.ToTable("Files");
                 });
 
             modelBuilder.Entity("TagFlowApi.Models.FileRow", b =>
                 {
-                    b.Property<int>("FileRowId")
+                    b.Property<int>("RowId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FileRowId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RowId"));
 
-                    b.Property<string>("BeneficiaryNumber")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Data")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("BeneficiaryType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Class")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DeductIblerate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("FileId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IdentityNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("InsuranceCompany")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("InsuranceExpiryDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MaxLimit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MedicalNetwork")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PolicyNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SsnId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UploadDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("FileRowId");
-
-                    b.HasIndex("FileId");
-
-                    b.HasIndex("SsnId");
-
-                    b.ToTable("FileRows");
-                });
-
-            modelBuilder.Entity("TagFlowApi.Models.FileTag", b =>
-                {
-                    b.Property<int>("FileTagId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FileTagId"));
 
                     b.Property<int>("FileId")
                         .HasColumnType("int");
@@ -195,23 +131,22 @@ namespace TagFlowApi.Migrations
                     b.Property<int>("TagId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TagValueId")
+                    b.Property<int>("TagValueId")
                         .HasColumnType("int");
 
-                    b.PrimitiveCollection<string>("TagValuesIds")
+                    b.Property<string>("TagValuesJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("FileTagId");
+                    b.HasKey("RowId");
+
+                    b.HasIndex("FileId");
 
                     b.HasIndex("TagId");
 
                     b.HasIndex("TagValueId");
 
-                    b.HasIndex("FileId", "TagId")
-                        .IsUnique();
-
-                    b.ToTable("FileTags");
+                    b.ToTable("FileRows");
                 });
 
             modelBuilder.Entity("TagFlowApi.Models.Role", b =>
@@ -370,9 +305,13 @@ namespace TagFlowApi.Migrations
 
             modelBuilder.Entity("TagFlowApi.Models.File", b =>
                 {
-                    b.HasOne("TagFlowApi.Models.User", null)
+                    b.HasOne("TagFlowApi.Models.User", "UploadedByUser")
                         .WithMany("Files")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UploadedBy")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
+
+                    b.Navigation("UploadedByUser");
                 });
 
             modelBuilder.Entity("TagFlowApi.Models.FileRow", b =>
@@ -383,30 +322,23 @@ namespace TagFlowApi.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
-                    b.Navigation("File");
-                });
-
-            modelBuilder.Entity("TagFlowApi.Models.FileTag", b =>
-                {
-                    b.HasOne("TagFlowApi.Models.File", "File")
-                        .WithMany("FileTags")
-                        .HasForeignKey("FileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("TagFlowApi.Models.Tag", "Tag")
-                        .WithMany("FileTags")
+                        .WithMany("FileRows")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
-                    b.HasOne("TagFlowApi.Models.TagValue", null)
-                        .WithMany("FileTags")
-                        .HasForeignKey("TagValueId");
+                    b.HasOne("TagFlowApi.Models.TagValue", "TagValue")
+                        .WithMany("FileRows")
+                        .HasForeignKey("TagValueId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
                     b.Navigation("File");
 
                     b.Navigation("Tag");
+
+                    b.Navigation("TagValue");
                 });
 
             modelBuilder.Entity("TagFlowApi.Models.Role", b =>
@@ -502,8 +434,6 @@ namespace TagFlowApi.Migrations
             modelBuilder.Entity("TagFlowApi.Models.File", b =>
                 {
                     b.Navigation("FileRows");
-
-                    b.Navigation("FileTags");
                 });
 
             modelBuilder.Entity("TagFlowApi.Models.Role", b =>
@@ -513,7 +443,7 @@ namespace TagFlowApi.Migrations
 
             modelBuilder.Entity("TagFlowApi.Models.Tag", b =>
                 {
-                    b.Navigation("FileTags");
+                    b.Navigation("FileRows");
 
                     b.Navigation("TagValues");
 
@@ -522,7 +452,7 @@ namespace TagFlowApi.Migrations
 
             modelBuilder.Entity("TagFlowApi.Models.TagValue", b =>
                 {
-                    b.Navigation("FileTags");
+                    b.Navigation("FileRows");
                 });
 
             modelBuilder.Entity("TagFlowApi.Models.User", b =>

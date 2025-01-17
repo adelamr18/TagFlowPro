@@ -14,11 +14,19 @@ namespace TagFlowApi.Infrastructure
         public DbSet<TagValue> TagValues { get; set; }
         public DbSet<UserTagPermission> UserTagPermissions { get; set; }
         public DbSet<Models.File> Files { get; set; }
+        public DbSet<FileTag> FileTags { get; set; }
         public DbSet<FileRow> FileRows { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<FileRow>()
+          .HasKey(fr => fr.FileRowId);
+
+            modelBuilder.Entity<FileRow>()
+                  .HasIndex(fr => fr.SsnId)
+                  .IsUnique(false);
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
@@ -68,29 +76,21 @@ namespace TagFlowApi.Infrastructure
                 .HasForeignKey(tv => tv.CreatedBy)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            modelBuilder.Entity<Models.File>()
-                .HasOne(f => f.UploadedByUser)
-                .WithMany(u => u.Files)
-                .HasForeignKey(f => f.UploadedBy)
+            modelBuilder.Entity<FileTag>()
+                    .HasOne(ft => ft.File)
+                    .WithMany(f => f.FileTags)
+                    .HasForeignKey(ft => ft.FileId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FileTag>()
+                .HasOne(ft => ft.Tag)
+                .WithMany(t => t.FileTags)
+                .HasForeignKey(ft => ft.TagId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            modelBuilder.Entity<FileRow>()
-                .HasOne(fr => fr.File)
-                .WithMany(f => f.FileRows)
-                .HasForeignKey(fr => fr.FileId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<FileRow>()
-                .HasOne(fr => fr.Tag)
-                .WithMany(t => t.FileRows)
-                .HasForeignKey(fr => fr.TagId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<FileRow>()
-                .HasOne(fr => fr.TagValue)
-                .WithMany(tv => tv.FileRows)
-                .HasForeignKey(fr => fr.TagValueId)
-                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<FileTag>()
+                .HasIndex(ft => new { ft.FileId, ft.TagId })
+                .IsUnique();
 
             modelBuilder.Entity<UserTagPermission>()
                 .HasKey(utp => new { utp.UserId, utp.TagId });
@@ -108,7 +108,10 @@ namespace TagFlowApi.Infrastructure
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<FileRow>()
-                .HasKey(fr => fr.RowId);
+                    .HasOne(fr => fr.File)
+                    .WithMany(f => f.FileRows)
+                    .HasForeignKey(fr => fr.FileId)
+                    .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

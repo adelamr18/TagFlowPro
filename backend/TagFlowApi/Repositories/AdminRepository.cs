@@ -99,10 +99,12 @@ namespace TagFlowApi.Repositories
                     TagId = t.TagId,
                     TagName = t.TagName,
                     TagValues = t.TagValues.Select(tv => tv.Value).ToList(),
+                    TagValuesIds = t.TagValues.Select(tv => tv.TagValueId).ToList(),
                     AssignedUsers = t.UserTagPermissions.Select(tu => tu.User.Username).ToList(),
+                    AssignedUserIds = t.UserTagPermissions.Select(tu => tu.User.UserId).ToList(),
                     CreatedByEmail = t.CreatedByAdmin != null ? t.CreatedByAdmin.Email : "",
                     CreatedByUserName = t.CreatedByAdmin != null ? t.CreatedByAdmin.Username : "",
-                    UpdatedBy = t.UpdatedBy
+                    UpdatedBy = t.UpdatedBy,
                 })
                 .ToListAsync();
 
@@ -294,6 +296,11 @@ namespace TagFlowApi.Repositories
             if (await _context.Users.AnyAsync(u => u.Email == userCreateDto.Email))
             {
                 throw new Exception("User with the given email already exists.");
+            }
+
+            if (await _context.Users.AnyAsync(u => u.Username == userCreateDto.Username))
+            {
+                throw new Exception("User with the given username already exists.");
             }
 
             if (!await _context.Roles.AnyAsync(r => r.RoleId == userCreateDto.RoleId))
