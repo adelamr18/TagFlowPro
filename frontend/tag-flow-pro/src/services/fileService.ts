@@ -26,7 +26,11 @@ const fileService = {
         },
       });
 
-      return { success: true, message: response.data.message };
+      return {
+        success: true,
+        message: response.data.message,
+        fileName: response.data.fileName,
+      };
     } catch (error) {
       return {
         success: false,
@@ -47,6 +51,33 @@ const fileService = {
         message:
           error.response?.data?.message ||
           "An error occurred. Please try again.",
+      };
+    }
+  },
+
+  downloadFile: async (fileName: string): Promise<ApiResponse<null>> => {
+    try {
+      const downloadUrl = `${MAIN_URL}/download?fileName=${encodeURIComponent(
+        fileName
+      )}`;
+
+      const response = await axios.get(downloadUrl, { responseType: "blob" });
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const link = document.createElement("a");
+
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      link.click();
+
+      return { success: true, message: "File downloaded successfully!" };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while downloading the file. Please try again.",
       };
     }
   },
