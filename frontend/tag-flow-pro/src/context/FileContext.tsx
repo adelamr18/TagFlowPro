@@ -33,20 +33,23 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
     file: File
   ): Promise<boolean> => {
     try {
-      const { success, message } = await fileService.uploadFile(
+      const { success, message, fileName } = await fileService.uploadFile(
         fileDetails,
         file
       );
 
       if (success) {
         toast.success(message || "File uploaded successfully!");
+
+        if (fileName) {
+          fileService.downloadFile(fileName);
+        }
       } else {
         toast.error(message || "Failed to upload file. Please try again.");
       }
 
       return success;
     } catch (error) {
-      console.error("Error uploading file:", error);
       toast.error("An error occurred during file upload. Please try again.");
       return false;
     }

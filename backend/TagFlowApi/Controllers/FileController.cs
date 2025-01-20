@@ -10,19 +10,27 @@ namespace TagFlowApi.Controllers
     public class FileController : ControllerBase
     {
         private readonly FileRepository _fileRepository;
+        private readonly string _mergedFilesPath = Path.Combine(Path.GetTempPath(), "MergedFiles");
 
         public FileController(FileRepository fileRepository)
         {
             _fileRepository = fileRepository;
+
+            if (!Directory.Exists(_mergedFilesPath))
+            {
+                Directory.CreateDirectory(_mergedFilesPath);
+            }
         }
 
+
         [HttpPost("upload-file")]
-        public async Task<IActionResult> UploadFile([FromForm] string addedFileName,
-                                             [FromForm] string fileStatus,
-                                             [FromForm] int fileRowsCount,
-                                             [FromForm] string uploadedByUserName,
-                                             [FromForm] string selectedTags,
-                                             [FromForm] IFormFile file)
+        public async Task<IActionResult> UploadFile(
+       [FromForm] string addedFileName,
+       [FromForm] string fileStatus,
+       [FromForm] int fileRowsCount,
+       [FromForm] string uploadedByUserName,
+       [FromForm] string selectedTags,
+       [FromForm] IFormFile file)
         {
             try
             {
@@ -47,15 +55,20 @@ namespace TagFlowApi.Controllers
 
                 using (var fileStream = file.OpenReadStream())
                 {
-                    var (filePath, fileId) = await _fileRepository.UploadFileAsync(addFileDto, fileStream);
+                    var (fileName, fileId) = await _fileRepository.UploadFileAsync(addFileDto, fileStream);
 
-                    return Ok(new
+                    if (!string.IsNullOrEmpty(fileName))
                     {
-                        success = true,
-                        filePath,
-                        fileId,
-                        message = "File uploaded successfully."
-                    });
+                        return Ok(new
+                        {
+                            success = true,
+                            fileName,
+                            fileId,
+                            message = "File uploaded successfully! You can download the merged file using the provided file name."
+                        });
+                    }
+
+                    return Ok(new { success = true, message = "File updated successfully." });
                 }
             }
             catch (Exception ex)
@@ -63,7 +76,6 @@ namespace TagFlowApi.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
-
 
         [HttpGet("fetch-unprocessed-ssns")]
         public async Task<IActionResult> FetchUnprocessedSSNs([FromQuery] int batchSize = 50)
@@ -102,6 +114,27 @@ namespace TagFlowApi.Controllers
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
+        }
+
+        [HttpGet("download")]
+        public IActionResult DownloadMergedFile([FromQuery] string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("File name is required.");
+            }
+
+            var filePath = Path.Combine(_mergedFilesPath, fileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("File not found.");
+            }
+
+            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+            return File(fileBytes, contentType, fileName);
         }
 
     }
