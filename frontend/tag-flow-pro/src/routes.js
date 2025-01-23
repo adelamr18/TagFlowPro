@@ -5,6 +5,7 @@ import ForgetPassword from "views/ForgetPassword";
 import ProtectedRoute from "components/Utils/ProtectedRoute.tsx";
 import Logout from "views/Logout";
 import FileUpload from "views/FileUpload";
+import FileStatus from "views/FileStatus";
 
 var routes = [
   {
@@ -52,7 +53,18 @@ var routes = [
         <FileUpload />
       </ProtectedRoute>
     ),
-    layout: "/admin",
+    layout: "/file",
+  },
+  {
+    path: "/file-status",
+    name: "File Status",
+    icon: "ni ni-chart-bar-32 text-orange",
+    component: (
+      <ProtectedRoute>
+        <FileStatus />
+      </ProtectedRoute>
+    ),
+    layout: "/file",
   },
   {
     path: "/forget-password",

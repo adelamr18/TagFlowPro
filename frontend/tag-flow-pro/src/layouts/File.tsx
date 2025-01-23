@@ -14,7 +14,7 @@ interface AdminProps {
   location: Location;
 }
 
-const Admin = (props: AdminProps) => {
+const File = (props: AdminProps) => {
   const mainContent = useRef(null);
   const location = useLocation();
   const { roleId } = useAuth();
@@ -104,4 +104,4 @@ const Admin = (props: AdminProps) => {
   );
 };
 
-export default Admin;
+export default File;
