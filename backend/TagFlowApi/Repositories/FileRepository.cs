@@ -15,6 +15,7 @@ namespace TagFlowApi.Repositories
         private static readonly string PROCESSED_STATUS = "Processed";
         private static readonly string PROCESSING_STATUS = "Processing";
         private static readonly string UNPROCESSED_STATUS = "Unprocessed";
+        private static readonly string BASE_URL = "http://localhost:5500";
         public FileRepository(DataContext context)
         {
             _context = context;
@@ -94,26 +95,19 @@ namespace TagFlowApi.Repositories
         public async Task<(string? filePath, int newFileId)> UploadFileAsync(AddFileDto fileDto, Stream fileStream)
         {
             if (!fileStream.CanRead)
-            {
                 throw new Exception("Invalid file stream. The file cannot be read.");
-            }
 
-            var (isExcel, hasSsnColumn, headers) = ValidateExcelFile(fileStream);
+            var (isExcel, hasSsnColumn, _) = ValidateExcelFile(fileStream);
             if (!isExcel)
-            {
                 throw new Exception("The uploaded file is not a valid Excel file.");
-            }
             if (!hasSsnColumn)
-            {
                 throw new Exception("The uploaded Excel file does not contain a column named 'SSN'.");
-            }
 
             var ssnIds = await ExtractSsnIdsFromExcel(fileStream);
-            var fileName = fileDto.AddedFileName;
 
             var newFile = new File
             {
-                FileName = fileName,
+                FileName = fileDto.AddedFileName,
                 CreatedAt = DateTime.UtcNow,
                 FileStatus = fileDto.FileStatus,
                 FileRowsCounts = ssnIds.Count,
@@ -123,26 +117,28 @@ namespace TagFlowApi.Repositories
             _context.Files.Add(newFile);
             await _context.SaveChangesAsync();
 
-            var existingDuplicatesTask = GetDuplicateSSNsAsync(ssnIds);
-            var newSsnIds = ssnIds.Except(existingDuplicatesTask.Result.Select(d => d.SsnId)).ToList();
+            var existingDuplicates = await GetDuplicateSSNsAsync(ssnIds);
 
-            var existingDuplicates = await existingDuplicatesTask;
+            var existingSsnMap = existingDuplicates
+                .GroupBy(d => d.SsnId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Any(d => d.Status == PROCESSED_STATUS) ? PROCESSED_STATUS : g.First().Status
+                );
 
-            var fileRows = new List<FileRow>();
-
-            fileRows.AddRange(existingDuplicates.Select(duplicate => new FileRow
+            var fileRows = ssnIds.Select(ssn =>
             {
-                FileId = newFile.FileId,
-                SsnId = duplicate.SsnId,
-                Status = PROCESSED_STATUS
-            }));
+                var status = existingSsnMap.TryGetValue(ssn, out var existingStatus) && existingStatus == PROCESSED_STATUS
+                    ? PROCESSED_STATUS
+                    : UNPROCESSED_STATUS;
 
-            fileRows.AddRange(newSsnIds.Select(ssn => new FileRow
-            {
-                FileId = newFile.FileId,
-                SsnId = ssn,
-                Status = UNPROCESSED_STATUS
-            }));
+                return new FileRow
+                {
+                    FileId = newFile.FileId,
+                    SsnId = ssn,
+                    Status = status
+                };
+            }).ToList();
 
             _context.FileRows.AddRange(fileRows);
 
@@ -151,21 +147,21 @@ namespace TagFlowApi.Repositories
                 FileId = newFile.FileId,
                 TagId = tag.TagId,
                 TagValuesIds = tag.TagValuesIds
-            }).ToList();
+            });
 
             _context.FileTags.AddRange(fileTags);
+
+            if (ssnIds.All(ssn => existingSsnMap.TryGetValue(ssn, out var status) && status == PROCESSED_STATUS))
+                newFile.FileStatus = PROCESSED_STATUS;
 
             await _context.SaveChangesAsync();
 
             string? filePath = null;
             if (existingDuplicates.Any())
-            {
                 filePath = await GenerateMergedExcelFileAsync(newFile.FileId, fileDto.File);
-            }
 
             return (filePath, newFile.FileId);
         }
-
 
         private static (bool isExcel, bool hasSsnColumn, List<string> headers) ValidateExcelFile(Stream fileStream)
         {
@@ -188,34 +184,22 @@ namespace TagFlowApi.Repositories
             return (true, hasSsnColumn, headers);
         }
 
-        private static Dictionary<string, List<string>> ExtractDynamicDataFromExcel(Stream fileStream, List<string> headers)
+        public async Task UpdateFileDownloadLinkAsync(int fileId, string fileName)
         {
-            using var package = new ExcelPackage(fileStream);
-            var worksheet = package.Workbook.Worksheets.First();
+            var fileRecord = await _context.Files.FirstOrDefaultAsync(f => f.FileId == fileId);
+            var downloadLink = $"{BASE_URL}/api/file/download?fileName={Uri.EscapeDataString(fileName)}&fileId={fileId}";
 
-            var rowDataDictionary = new Dictionary<string, List<string>>();
-
-            foreach (var header in headers)
+            if (fileRecord == null)
             {
-                rowDataDictionary[header] = new List<string>();
+                throw new InvalidOperationException($"File with ID {fileId} not found.");
             }
 
-            for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
-            {
-                for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
-                {
-                    var header = worksheet.Cells[1, col].Text.Trim();
+            fileRecord.DownloadLink = downloadLink;
 
-                    if (!string.IsNullOrEmpty(header) && headers.Contains(header))
-                    {
-                        var cellValue = worksheet.Cells[row, col].Text.Trim();
-                        rowDataDictionary[header].Add(cellValue);
-                    }
-                }
-            }
-
-            return rowDataDictionary;
+            _context.Files.Update(fileRecord);
+            await _context.SaveChangesAsync();
         }
+
 
         public async Task<List<string>> ExtractSsnIdsFromExcel(Stream fileStream)
         {
@@ -355,10 +339,10 @@ namespace TagFlowApi.Repositories
         {
             var dbHeaders = new[]
             {
-            "InsuranceCompany", "MedicalNetwork", "IdentityNumber",
-            "PolicyNumber", "Class", "DeductIblerate", "MaxLimit",
-            "UploadDate", "InsuranceExpiryDate", "BeneficiaryType", "BeneficiaryNumber"
-            };
+        "InsuranceCompany", "MedicalNetwork", "IdentityNumber",
+        "PolicyNumber", "Class", "DeductIblerate", "MaxLimit",
+        "UploadDate", "InsuranceExpiryDate", "BeneficiaryType", "BeneficiaryNumber"
+    };
 
             var uploadedData = ReadOriginalExcelDataAsync(originalFile);
 
@@ -399,26 +383,25 @@ namespace TagFlowApi.Repositories
                 var ssnId = uploadedRow["ssn"];
                 var matchingDbRow = dbRows.FirstOrDefault(dbRow => dbRow.SsnId == ssnId);
 
+                if (matchingDbRow == null) continue;
+
                 for (int col = 0; col < dynamicHeaders.Count; col++)
                 {
                     var key = dynamicHeaders[col];
                     worksheet.Cells[rowNumber, col + 1].Value = uploadedRow.ContainsKey(key) ? uploadedRow[key] : null;
                 }
 
-                if (matchingDbRow != null)
-                {
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 1].Value = matchingDbRow.InsuranceCompany;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 2].Value = matchingDbRow.MedicalNetwork;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 3].Value = matchingDbRow.IdentityNumber;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 4].Value = matchingDbRow.PolicyNumber;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 5].Value = matchingDbRow.Class;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 6].Value = matchingDbRow.DeductIblerate;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 7].Value = matchingDbRow.MaxLimit;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 8].Value = matchingDbRow.UploadDate;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 9].Value = matchingDbRow.InsuranceExpiryDate;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 10].Value = matchingDbRow.BeneficiaryType;
-                    worksheet.Cells[rowNumber, dynamicHeaders.Count + 11].Value = matchingDbRow.BeneficiaryNumber;
-                }
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 1].Value = matchingDbRow.InsuranceCompany;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 2].Value = matchingDbRow.MedicalNetwork;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 3].Value = matchingDbRow.IdentityNumber;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 4].Value = matchingDbRow.PolicyNumber;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 5].Value = matchingDbRow.Class;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 6].Value = matchingDbRow.DeductIblerate;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 7].Value = matchingDbRow.MaxLimit;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 8].Value = matchingDbRow.UploadDate;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 9].Value = matchingDbRow.InsuranceExpiryDate;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 10].Value = matchingDbRow.BeneficiaryType;
+                worksheet.Cells[rowNumber, dynamicHeaders.Count + 11].Value = matchingDbRow.BeneficiaryNumber;
 
                 rowNumber++;
             }
@@ -427,6 +410,7 @@ namespace TagFlowApi.Repositories
 
             return fileName;
         }
+
 
         private static List<Dictionary<string, string>> ReadOriginalExcelDataAsync(IFormFile file)
         {
@@ -459,6 +443,24 @@ namespace TagFlowApi.Repositories
             }
 
             return result;
+        }
+
+        public async Task<List<FileDto>> GetAllFilesAsync()
+        {
+            var files = await _context.Files
+                .Select(f => new FileDto
+                {
+                    FileId = f.FileId,
+                    FileName = f.FileName,
+                    UploadedByUserName = f.UploadedByUserName,
+                    CreatedAt = f.CreatedAt,
+                    FileStatus = f.FileStatus,
+                    FileRowsCounts = f.FileRowsCounts,
+                    DownloadLink = f.DownloadLink
+                })
+                .ToListAsync();
+
+            return files;
         }
     }
 }

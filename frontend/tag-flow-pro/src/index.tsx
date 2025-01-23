@@ -7,6 +7,8 @@ import "assets/scss/tag-flow-pro.scss";
 
 import AdminLayout from "layouts/Admin.tsx";
 import AuthLayout from "layouts/Auth.tsx";
+import FileLayout from "layouts/File.tsx";
+
 import ContextProvider from "./context/ContextProvider.tsx";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -17,6 +19,7 @@ root.render(
       <Routes>
         <Route path="/admin/*" element={<AdminLayout location={undefined} />} />
         <Route path="/auth/*" element={<AuthLayout />} />
+        <Route path="/file/*" element={<FileLayout location={undefined} />} />
         <Route path="*" element={<Navigate to="/admin/index" replace />} />
       </Routes>
       <ToastContainer aria-label={undefined} />

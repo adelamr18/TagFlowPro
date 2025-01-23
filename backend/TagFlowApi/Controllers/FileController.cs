@@ -117,7 +117,7 @@ namespace TagFlowApi.Controllers
         }
 
         [HttpGet("download")]
-        public IActionResult DownloadMergedFile([FromQuery] string fileName)
+        public async Task<IActionResult> DownloadMergedFile([FromQuery] string fileName, [FromQuery] int fileId)
         {
             if (string.IsNullOrEmpty(fileName))
             {
@@ -131,10 +131,32 @@ namespace TagFlowApi.Controllers
                 return NotFound("File not found.");
             }
 
+            await _fileRepository.UpdateFileDownloadLinkAsync(fileId, fileName);
+
             var fileBytes = System.IO.File.ReadAllBytes(filePath);
             var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
             return File(fileBytes, contentType, fileName);
+        }
+
+        [HttpGet("get-all-files")]
+        public async Task<IActionResult> GetAllFiles()
+        {
+            try
+            {
+                var files = await _fileRepository.GetAllFilesAsync();
+
+                if (files == null || !files.Any())
+                {
+                    return NotFound(new { success = false, message = "No files found." });
+                }
+
+                return Ok(new { success = true, files });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
 
     }

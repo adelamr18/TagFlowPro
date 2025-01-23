@@ -30,6 +30,7 @@ const fileService = {
         success: true,
         message: response.data.message,
         fileName: response.data.fileName,
+        fileId: response.data.fileId,
       };
     } catch (error) {
       return {
@@ -43,23 +44,30 @@ const fileService = {
 
   getAllFiles: async (): Promise<ApiResponse<null>> => {
     try {
-      const response = await axios.get(`${MAIN_URL}/update-file`);
-      return { success: true, message: response.data.message };
+      const response = await axios.get(`${MAIN_URL}/get-all-files`);
+      return {
+        success: true,
+        data: response.data.files,
+        message: response.data.message,
+      };
     } catch (error) {
       return {
         success: false,
         message:
           error.response?.data?.message ||
-          "An error occurred. Please try again.",
+          "An error occurred while getting the files. Please try again.",
       };
     }
   },
 
-  downloadFile: async (fileName: string): Promise<ApiResponse<null>> => {
+  downloadFile: async (
+    fileName: string,
+    fileId: number
+  ): Promise<ApiResponse<null>> => {
     try {
       const downloadUrl = `${MAIN_URL}/download?fileName=${encodeURIComponent(
         fileName
-      )}`;
+      )}&fileId=${fileId}`;
 
       const response = await axios.get(downloadUrl, { responseType: "blob" });
       const blob = new Blob([response.data], {
