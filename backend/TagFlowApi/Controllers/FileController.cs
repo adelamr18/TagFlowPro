@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using TagFlowApi.DTOs;
+using TagFlowApi.Hubs;
 using TagFlowApi.Repositories;
 
 namespace TagFlowApi.Controllers
@@ -11,17 +13,17 @@ namespace TagFlowApi.Controllers
     {
         private readonly FileRepository _fileRepository;
         private readonly string _mergedFilesPath = Path.Combine(Path.GetTempPath(), "MergedFiles");
-
-        public FileController(FileRepository fileRepository)
+        private readonly IHubContext<FileStatusHub> _hubContext;
+        public FileController(FileRepository fileRepository, IHubContext<FileStatusHub> hubContext)
         {
             _fileRepository = fileRepository;
+            _hubContext = hubContext;
 
             if (!Directory.Exists(_mergedFilesPath))
             {
                 Directory.CreateDirectory(_mergedFilesPath);
             }
         }
-
 
         [HttpPost("upload-file")]
         public async Task<IActionResult> UploadFile(
@@ -68,7 +70,7 @@ namespace TagFlowApi.Controllers
                         });
                     }
 
-                    return Ok(new { success = true, message = "File updated successfully." });
+                    return Ok(new { success = true, message = "File uploaded successfully. You can find the downloaded file in the file status table" });
                 }
             }
             catch (Exception ex)
@@ -106,7 +108,7 @@ namespace TagFlowApi.Controllers
         {
             try
             {
-                await _fileRepository.UpdateProcessedDataAsync(fileId, processedFileRows);
+                await _fileRepository.UpdateProcessedDataAsync(fileId, processedFileRows, _hubContext);
 
                 return Ok(new { success = true, message = "Data updated successfully." });
             }
@@ -158,6 +160,28 @@ namespace TagFlowApi.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+        [HttpDelete("delete/{fileId}")]
+        public async Task<IActionResult> DeleteFile(int fileId)
+        {
+            try
+            {
+                var file = await _fileRepository.GetFileByIdAsync(fileId);
+                if (file == null)
+                {
+                    return NotFound(new { success = false, message = "File not found." });
+                }
+
+                await _fileRepository.DeleteFileAsync(fileId);
+
+                return Ok(new { success = true, message = "File deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
 
     }
 }

@@ -10,10 +10,12 @@ import { UploadFileDetails } from "types/UploadFileDetails";
 import { toast } from "react-toastify";
 import fileService from "services/fileService";
 import { FileStatus } from "types/FileStatus";
+import signalRService from "services/signalRService";
 
 interface FileContextType {
   uploadFile: (fileDetails: UploadFileDetails, file: File) => Promise<boolean>;
   getAllFiles: () => Promise<void>;
+  deleteFile: (fileId: number) => Promise<void>;
   files: FileStatus[];
   setFiles: React.Dispatch<React.SetStateAction<FileStatus[]>>;
 }
@@ -21,6 +23,7 @@ interface FileContextType {
 const FileContext = createContext<FileContextType>({
   uploadFile: async () => false,
   getAllFiles: async () => {},
+  deleteFile: async () => {},
   files: [],
   setFiles: () => {},
 });
@@ -31,6 +34,30 @@ interface FileProviderProps {
 
 export const FileProvider: FC<FileProviderProps> = ({ children }) => {
   const [files, setFiles] = useState<FileStatus[]>([]);
+
+  useEffect(() => {
+    signalRService.startConnection();
+
+    const onFileStatusUpdate = async (
+      fileId: number,
+      downloadLink: string,
+      fileStatus: string
+    ) => {
+      await getAllFiles();
+
+      setFiles((prevFiles) =>
+        prevFiles.map((file) =>
+          file.fileId === fileId ? { ...file, downloadLink, fileStatus } : file
+        )
+      );
+    };
+
+    signalRService.onFileStatusUpdated(onFileStatusUpdate);
+
+    return () => {
+      signalRService.stopConnection();
+    };
+  }, []);
 
   const uploadFile = async (
     fileDetails: UploadFileDetails,
@@ -44,8 +71,8 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
         toast.success(message || "File uploaded successfully!");
         if (fileName) {
           fileService.downloadFile(fileName, parseInt(fileId, 10));
-          await getAllFiles();
         }
+        await getAllFiles();
       } else {
         toast.error(message || "Failed to upload file. Please try again.");
       }
@@ -70,12 +97,32 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
     }
   };
 
+  const deleteFile = async (fileId: number): Promise<void> => {
+    try {
+      const { success, message } = await fileService.deleteFile(fileId);
+      if (success) {
+        toast.success(message || "File deleted successfully!");
+        setFiles((prevFiles) =>
+          prevFiles.filter((file) => file.fileId !== fileId)
+        );
+      } else {
+        toast.error(message || "Failed to delete file. Please try again.");
+      }
+    } catch (error) {
+      toast.error(
+        "An error occurred while deleting the file. Please try again."
+      );
+    }
+  };
+
   useEffect(() => {
     getAllFiles();
   }, []);
 
   return (
-    <FileContext.Provider value={{ uploadFile, getAllFiles, files, setFiles }}>
+    <FileContext.Provider
+      value={{ uploadFile, getAllFiles, deleteFile, files, setFiles }}
+    >
       {children}
     </FileContext.Provider>
   );
