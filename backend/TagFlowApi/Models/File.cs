@@ -11,6 +11,7 @@ namespace TagFlowApi.Models
         public int FileRowsCounts { get; set; } = 0;
         public string UploadedByUserName { get; set; } = "";
         public string DownloadLink { get; set; } = "";
+        public byte[]? FileContent { get; set; }
 
         // One-to-many relationship with FileTags
         public ICollection<FileTag> FileTags { get; set; } = new List<FileTag>();

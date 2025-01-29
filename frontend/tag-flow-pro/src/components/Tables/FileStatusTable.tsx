@@ -1,11 +1,15 @@
 import TableWrapper from "components/Tables/TableWrapper";
+import { FILENAME_SEARCH_PLACEHOLDER } from "shared/consts";
 import { FileStatus } from "types/FileStatus";
+import { Button } from "reactstrap";
 
 interface FileStatusTableProps {
   files: FileStatus[];
   currentPage: number;
   totalPages: number;
   paginateFilesTable: (page: number) => void;
+  onSearch?: (value: string) => void;
+  handleDeleteFile: (fileId: number) => void;
 }
 
 const FileStatusTable = ({
@@ -13,13 +17,15 @@ const FileStatusTable = ({
   currentPage,
   totalPages,
   paginateFilesTable,
+  onSearch,
+  handleDeleteFile,
 }: FileStatusTableProps) => {
   const columns = [
     { header: "File Name", accessor: "fileName" },
     { header: "Uploaded By", accessor: "uploadedByUserName" },
     { header: "Created At", accessor: "createdAt" },
     { header: "File Status", accessor: "fileStatus" },
-    { header: "Total Uploaded Rows", accessor: "fileRowsCounts" },
+    { header: "Total Rows", accessor: "fileRowsCounts" },
     {
       header: "Download",
       accessor: "fileName",
@@ -36,6 +42,15 @@ const FileStatusTable = ({
           <></>
         ),
     },
+    {
+      header: "Actions",
+      accessor: "actions",
+      render: (file: FileStatus) => (
+        <Button color="danger" onClick={() => handleDeleteFile(file.fileId)}>
+          Delete
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -48,7 +63,8 @@ const FileStatusTable = ({
       onPageChange={paginateFilesTable}
       canShowAddButton={false}
       toggleAddModal={() => {}}
-      searchPlaceholder="Search files..."
+      searchPlaceholder={FILENAME_SEARCH_PLACEHOLDER}
+      onSearch={onSearch}
     />
   );
 };

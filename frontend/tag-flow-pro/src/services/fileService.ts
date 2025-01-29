@@ -89,6 +89,20 @@ const fileService = {
       };
     }
   },
+
+  deleteFile: async (fileId: number): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.delete(`${MAIN_URL}/delete/${fileId}`);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while deleting the file.",
+      };
+    }
+  },
 };
 
 export default fileService;

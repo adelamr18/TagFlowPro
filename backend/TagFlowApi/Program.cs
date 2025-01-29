@@ -1,25 +1,24 @@
 using Microsoft.EntityFrameworkCore;
 using TagFlowApi.Infrastructure;
 using TagFlowApi.Repositories;
+using TagFlowApi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register repositories and other services
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<FileRepository>();
 builder.Services.AddScoped<AdminRepository>();
 builder.Services.AddSingleton<JwtService>();
 
-// Add controllers and other necessary services
+builder.Services.AddSignalR();
+
 builder.Services.AddControllers();
 
-// Add Swagger services
-builder.Services.AddEndpointsApiExplorer(); // Required for Swagger to discover endpoints
-builder.Services.AddSwaggerGen();  // Enable Swagger generation
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
 {
@@ -28,13 +27,13 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:3000")
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials();
+              .AllowCredentials()
+              .WithMethods("OPTIONS");
     });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -44,6 +43,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
+
+app.MapHub<FileStatusHub>("/file-status-hub");
 
 app.MapGet("/", () => Results.Redirect("/swagger"));
 app.MapControllers();
