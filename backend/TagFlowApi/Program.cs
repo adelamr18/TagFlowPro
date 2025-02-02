@@ -5,8 +5,12 @@ using TagFlowApi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Update to use PostgreSQL
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// builder.Services.AddDbContext<DataContext>(options =>
+// options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<FileRepository>();
