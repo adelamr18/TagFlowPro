@@ -1,4 +1,5 @@
-export const MAIN_HOST = "http://localhost:5500";
+export const MAIN_HOST = "https://tagflowprobackend-production.up.railway.app";
+// export const MAIN_HOST_DEV = "http://localhost:5500";
 export const API_URL = `${MAIN_HOST}/api`;
 export const ITEMS_PER_PAGE = 5;
 export const ADMIN_ROLE_ID = 1;
