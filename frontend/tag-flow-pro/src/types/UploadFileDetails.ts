@@ -3,10 +3,9 @@ export interface UploadFileDetails {
   fileStatus: string;
   fileRowsCount: number;
   uploadedByUserName: string;
-  selectedTags: SelectedTag[];
-}
-
-export interface SelectedTag {
-  tagId: number;
-  tagValuesIds: number[];
+  selectedProjectId?: number;
+  selectedPatientTypeIds?: number[];
+  userId: number;
+  isAdmin: boolean;
+  fileUploadedOn: Date;
 }

@@ -23,7 +23,17 @@ const FileStatusTable = ({
   const columns = [
     { header: "File Name", accessor: "fileName" },
     { header: "Uploaded By", accessor: "uploadedByUserName" },
-    { header: "Created At", accessor: "createdAt" },
+    {
+      header: "Created At",
+      accessor: "createdAt",
+      render: (file: FileStatus) => new Date(file.createdAt).toLocaleString(),
+    },
+    {
+      header: "File Uploaded On",
+      accessor: "fileUploadedOn",
+      render: (file: FileStatus) =>
+        new Date(file.fileUploadedOn).toLocaleDateString(),
+    },
     { header: "File Status", accessor: "fileStatus" },
     { header: "Total Rows", accessor: "fileRowsCounts" },
     {
@@ -38,9 +48,7 @@ const FileStatusTable = ({
           >
             <i className="fa fa-download" style={{ cursor: "pointer" }} />
           </a>
-        ) : (
-          <></>
-        ),
+        ) : null,
     },
     {
       header: "Actions",

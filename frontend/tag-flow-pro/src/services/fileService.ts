@@ -12,27 +12,45 @@ const fileService = {
   ): Promise<ApiResponse<null>> => {
     try {
       const formData = new FormData();
-
       formData.append("addedFileName", fileDetails.fileName);
       formData.append("fileStatus", fileDetails.fileStatus);
       formData.append("fileRowsCount", fileDetails.fileRowsCount.toString());
       formData.append("uploadedByUserName", fileDetails.uploadedByUserName);
-      formData.append("selectedTags", JSON.stringify(fileDetails.selectedTags));
+      formData.append("userId", fileDetails.userId.toString());
+      formData.append("isAdmin", fileDetails.isAdmin.toString());
+      formData.append(
+        "fileUploadedOn",
+        fileDetails.fileUploadedOn.toISOString()
+      );
+      if (
+        fileDetails.selectedProjectId !== undefined &&
+        fileDetails.selectedProjectId !== null
+      ) {
+        formData.append(
+          "selectedProjectId",
+          fileDetails.selectedProjectId.toString()
+        );
+      }
+      if (
+        fileDetails.selectedPatientTypeIds &&
+        fileDetails.selectedPatientTypeIds.length > 0
+      ) {
+        formData.append(
+          "selectedPatientTypeIds",
+          JSON.stringify(fileDetails.selectedPatientTypeIds)
+        );
+      }
       formData.append("file", file);
-
       const response = await axios.post(`${MAIN_URL}/upload-file`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
       return {
         success: true,
         message: response.data.message,
         fileName: response.data.fileName,
         fileId: response.data.fileId,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message:
@@ -50,7 +68,7 @@ const fileService = {
         data: response.data.files,
         message: response.data.message,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message:

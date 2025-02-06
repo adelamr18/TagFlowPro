@@ -7,6 +7,9 @@ interface AuthContextType {
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
   userEmail: string | null;
   userName: string | null;
+  roleId: string | null;
+  userId: number | null;
+  setUserId: React.Dispatch<React.SetStateAction<number | null>>;
   logout: () => boolean;
   login: (
     email: string,
@@ -14,7 +17,6 @@ interface AuthContextType {
     rememberMe: boolean
   ) => Promise<boolean>;
   forgetPassword: (email: string, newPassword: string) => Promise<boolean>;
-  roleId: string;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,10 +24,12 @@ const AuthContext = createContext<AuthContextType>({
   setToken: () => {},
   userEmail: null,
   userName: null,
+  roleId: null,
+  userId: null,
+  setUserId: () => {},
   logout: () => false,
   login: async () => false,
   forgetPassword: async () => false,
-  roleId: null,
 });
 
 interface AuthProviderProps {
@@ -45,19 +49,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [roleId, setRoleId] = useState<string | null>(
     localStorage.getItem("roleId")
   );
+  const [userId, setUserId] = useState<number | null>(
+    localStorage.getItem("userId")
+      ? parseInt(localStorage.getItem("userId")!)
+      : null
+  );
 
   const logout = (): boolean => {
     setToken(null);
     setUserEmail(null);
     setUsername(null);
-
+    setRoleId(null);
+    setUserId(null);
     localStorage.removeItem("authToken");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userName");
+    localStorage.removeItem("roleId");
+    localStorage.removeItem("userId");
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("userEmail");
     sessionStorage.removeItem("userName");
-
     toast.success("Logged out successfully!");
     return true;
   };
@@ -68,22 +79,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     rememberMe: boolean
   ): Promise<boolean> => {
     try {
-      const { success, token, message, userName, roleId } =
+      const { success, token, message, userName, roleId, userId } =
         await authService.login(email, password);
-
       if (success && token) {
         const storage = rememberMe ? localStorage : sessionStorage;
-
         storage.setItem("authToken", token);
         storage.setItem("userEmail", email);
         storage.setItem("userName", userName);
         storage.setItem("roleId", roleId.toString());
-
+        storage.setItem("userId", userId.toString());
         setToken(token);
         setUserEmail(email);
         setUsername(userName);
         setRoleId(roleId.toString());
-
+        setUserId(userId);
         toast.success(message || "Login successful!");
         return true;
       } else {
@@ -106,13 +115,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         newPassword
       );
-
       if (success) {
         toast.success(message || "Password reset successfully!");
       } else {
         toast.error(message || "Failed to reset password. Please try again.");
       }
-
       return success;
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");
@@ -126,13 +133,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem("userEmail", userEmail || "");
       localStorage.setItem("userName", userName || "");
       localStorage.setItem("roleId", roleId || "");
+      if (userId !== null) {
+        localStorage.setItem("userId", userId.toString());
+      }
     } else {
       localStorage.removeItem("authToken");
       localStorage.removeItem("userEmail");
       localStorage.removeItem("userName");
       localStorage.removeItem("roleId");
+      localStorage.removeItem("userId");
     }
-  }, [token, userEmail, userName, roleId]);
+  }, [token, userEmail, userName, roleId, userId]);
 
   return (
     <AuthContext.Provider
@@ -141,10 +152,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken,
         userEmail,
         userName,
+        roleId,
+        userId,
+        setUserId,
         logout,
         login,
         forgetPassword,
-        roleId,
       }}
     >
       {children}

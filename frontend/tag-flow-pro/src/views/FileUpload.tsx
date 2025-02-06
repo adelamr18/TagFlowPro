@@ -12,54 +12,50 @@ import {
 } from "reactstrap";
 import { useAdmin } from "context/AdminContext.tsx";
 import { useAuth } from "context/AuthContext";
-import { Tag } from "types/Tag";
 import { User } from "types/User";
 import { ADMIN_ROLE_ID, UNPROCESSED_FILE_STATUS } from "shared/consts";
 import { useFile } from "context/FileContext";
 import { UploadFileDetails } from "types/UploadFileDetails";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
+import { Project } from "types/Project";
 
 const FileUpload: React.FC = () => {
-  const { tags, users } = useAdmin();
-  const { userEmail, roleId, userName } = useAuth();
+  const { users, projects, patientTypes } = useAdmin();
+  const { userEmail, roleId, userName, userId } = useAuth();
   const { uploadFile } = useFile();
 
   const currentUser = users.find(
-    (user: User) => user.email.toLowerCase() === userEmail.toLowerCase()
+    (user: User) => user.email.toLowerCase() === userEmail?.toLowerCase()
   );
-  const userId = currentUser?.userId || 0;
+  const currentUserId = currentUser?.userId || 0;
 
   const [file, setFile] = useState<File | null>(null);
-  const [selectedTags, setSelectedTags] = useState<
+  const [selectedProject, setSelectedProject] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
+  const [selectedPatientTypes, setSelectedPatientTypes] = useState<
     MultiValue<{ value: string; label: string }>
   >([]);
-  const [selectedValues, setSelectedValues] = useState<
-    MultiValue<{ value: string; label: string }>
-  >([]);
+  const [fileUploadedOn, setFileUploadedOn] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  );
 
-  const availableTags =
-    parseInt(roleId, 10) === ADMIN_ROLE_ID
-      ? tags.map((tag: Tag) => ({
-          value: tag.tagId.toString(),
-          label: tag.tagName,
+  const availableProjects =
+    parseInt(roleId || "0", 10) === ADMIN_ROLE_ID
+      ? projects.map((project: Project) => ({
+          value: project.projectId.toString(),
+          label: project.projectName,
         }))
-      : tags
-          .filter((tag: Tag) => tag.assignedUserIds.includes(userId))
-          .map((tag: Tag) => ({
-            value: tag.tagId.toString(),
-            label: tag.tagName,
+      : projects
+          .filter((project: Project) =>
+            project.assignedUserIds.includes(currentUserId)
+          )
+          .map((project: Project) => ({
+            value: project.projectId.toString(),
+            label: project.projectName,
           }));
-
-  const availableTagValues = availableTags.flatMap((tag) => {
-    const tagObj = tags.find((t) => t.tagId.toString() === tag.value);
-    return tagObj
-      ? tagObj.tagValues.map((value, index) => ({
-          value: tagObj.tagValuesIds[index].toString(),
-          label: value,
-        }))
-      : [];
-  });
 
   const handleFileUpload = async () => {
     if (!file) {
@@ -73,12 +69,10 @@ const FileUpload: React.FC = () => {
           "application/vnd.ms-excel",
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ];
-
         if (!allowedTypes.includes(file.type)) {
           toast.error("Invalid file type. Please upload an Excel file.");
           return;
         }
-
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target?.result) {
@@ -92,40 +86,34 @@ const FileUpload: React.FC = () => {
       });
 
     const data = await readFile(file);
-
     const workbook = XLSX.read(new Uint8Array(data), { type: "array" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
     const fileRowsCount = sheetData.length - 1;
-
-    const selectedTagsDetails = selectedTags.map((tag) => {
-      const tagId = parseInt(tag.value, 10);
-      const tagData = tags.find((t) => t.tagId === tagId);
-      const tagValuesIds = selectedValues
-        .filter((value) =>
-          tagData?.tagValuesIds.includes(parseInt(value.value, 10))
-        )
-        .map((value) => parseInt(value.value, 10));
-      return { tagId, tagValuesIds };
-    });
-
+    const selectedProjectId = selectedProject
+      ? parseInt(selectedProject.value, 10)
+      : null;
+    const selectedPatientTypesDetails = selectedPatientTypes.map((pt) =>
+      parseInt(pt.value, 10)
+    );
     const fileDetails: UploadFileDetails = {
       fileName: file.name,
       fileStatus: UNPROCESSED_FILE_STATUS,
       fileRowsCount,
-      selectedTags: selectedTagsDetails,
-      uploadedByUserName: userName,
+      selectedProjectId,
+      selectedPatientTypeIds: selectedPatientTypesDetails,
+      uploadedByUserName: userName || "",
+      isAdmin: parseInt(roleId || "0", 10) === ADMIN_ROLE_ID,
+      userId,
+      fileUploadedOn: new Date(fileUploadedOn),
     };
-
     await uploadFile(fileDetails, file);
   };
 
   return (
     <>
       <div className="header bg-gradient-info pb-8 pt-5 pt-md-8"></div>
-
       <Container className="mt--7">
         <Row className="justify-content-center">
           <Col lg="6" md="8">
@@ -134,7 +122,6 @@ const FileUpload: React.FC = () => {
                 <CardTitle tag="h3" className="text-center mb-4">
                   File Upload
                 </CardTitle>
-
                 <div className="mb-4">
                   <label htmlFor="fileInput" className="form-label">
                     <strong>Select File</strong>
@@ -146,40 +133,51 @@ const FileUpload: React.FC = () => {
                       const selectedFile = e.target.files
                         ? e.target.files[0]
                         : null;
-                      setFile(selectedFile); // Set only the first file
+                      setFile(selectedFile);
                     }}
                     style={{ cursor: "pointer" }}
                   />
                 </div>
-
                 <div className="mb-4">
                   <label className="form-label">
-                    <strong>Select Tags</strong>
+                    <strong>Select Project</strong>
                   </label>
                   <Select
-                    isMulti
-                    options={availableTags}
-                    onChange={(newValue) => {
-                      setSelectedTags(newValue);
-                    }}
-                    value={selectedTags}
-                    placeholder="Select Tags..."
+                    options={availableProjects}
+                    onChange={(newValue) =>
+                      setSelectedProject(
+                        newValue as { value: string; label: string } | null
+                      )
+                    }
+                    value={selectedProject}
+                    placeholder="Select Project..."
                   />
                 </div>
-
                 <div className="mb-4">
                   <label className="form-label">
-                    <strong>Select Tag Values</strong>
+                    <strong>Select Patient Types</strong>
                   </label>
                   <Select
+                    options={patientTypes.map((pt) => ({
+                      value: pt.patientTypeId.toString(),
+                      label: pt.name,
+                    }))}
+                    onChange={(newValue) => setSelectedPatientTypes(newValue)}
+                    value={selectedPatientTypes}
+                    placeholder="Select Patient Types..."
                     isMulti
-                    options={availableTagValues}
-                    onChange={(newValue) => setSelectedValues(newValue)}
-                    value={selectedValues}
-                    placeholder="Select Values..."
                   />
                 </div>
-
+                <div className="mb-4">
+                  <label className="form-label">
+                    <strong>Select Upload Date</strong>
+                  </label>
+                  <Input
+                    type="date"
+                    value={fileUploadedOn}
+                    onChange={(e) => setFileUploadedOn(e.target.value)}
+                  />
+                </div>
                 <div className="text-center">
                   <Button color="primary" onClick={handleFileUpload}>
                     Upload Files
