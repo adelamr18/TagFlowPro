@@ -2,34 +2,36 @@ import Header from "components/Headers/Header.tsx";
 import { useState } from "react";
 import { useAdmin } from "context/AdminContext.tsx";
 import { User } from "types/User";
-import { Tag } from "types/Tag";
 import { Role } from "types/Role";
 import {
   ADMINS_TABLE_TYPE,
   ITEMS_PER_PAGE,
-  TAGS_TABLE_TYPE,
+  PATIENT_TYPES_TABLE_TYPE,
+  PROJECTS_TABLE_TYPE,
   USERS_TABLE_TYPE,
 } from "shared/consts";
 import RoleEditModal from "components/Modals/RoleEditModal";
-import TagEditModal from "components/Modals/TagEditModal";
-import TagValuesModal from "components/Modals/TagValuesModal";
-import AddTagModal from "components/Modals/AddTagModal";
-import { AddTagDetails } from "types/AddTagDetails";
 import { useAuth } from "context/AuthContext";
 import RolesManagementTable from "components/Tables/RolesManagementTable";
-import TagsManagementTable from "../components/Tables/TagsManagementTable";
 import UsersManagementTable from "components/Tables/UsersManagementTable";
 import EditUserModal from "components/Modals/EditUserModal";
 import AddUserModal from "components/Modals/AddUserModal";
 import { Container, Row } from "reactstrap";
 import { UpdateUserDetails } from "types/UpdateUserDetails";
-import { UpdateTagDetails } from "types/UpdateTagDetails";
 import AdminsManagementTable from "../components/Tables/AdminsManagementTable";
 import { Admin } from "types/Admin";
 import EditAdminModal from "components/Modals/EditAdminModal";
 import { UpdateAdminDetails } from "types/UpdateAdminDetails";
 import AddAdminModal from "components/Modals/AddAdminModal";
 import { AddAdminDetails } from "types/AddAdminDetails";
+import ProjectsManagementTable from "components/Tables/ProjectsManagementTable";
+import { Project } from "types/Project";
+import AddProjectModal from "components/Modals/AddProjectModal";
+import EditProjectModal from "components/Modals/EditProjectModal";
+import { PatientType } from "types/PatientType";
+import PatientTypesManagementTable from "components/Tables/PatientTypesManagementTable";
+import AddPatientTypeModal from "components/Modals/AddPatientTypeModal";
+import EditPatientTypeModal from "components/Modals/EditPatientTypesModal";
 
 interface UserOption {
   label: string;
@@ -42,10 +44,7 @@ const AdminPanel = () => {
     roles,
     updateRole,
     tags,
-    updateTag,
     users,
-    createTag,
-    deleteTag,
     deleteUser,
     addUser,
     updateUser,
@@ -53,13 +52,21 @@ const AdminPanel = () => {
     updateAdmin,
     addAdmin,
     deleteAdmin,
+    projects,
+    deleteProject,
+    addProject,
+    updateProject,
+    updatePatientType,
+    addPatientType,
+    deletePatientType,
+    patientTypes,
   } = useAdmin();
-  const { userName, userEmail } = useAuth();
+  const { userEmail } = useAuth();
 
-  // Utilility functions: Tables Management
+  // Utility functions: Tables Management
   const [adminSearchTerm, setAdminSearchTerm] = useState("");
   const [userSearchTerm, setUserSearchTerm] = useState("");
-  const [tagSearchTerm, setTagSearchTerm] = useState("");
+  const [projectSearchTerm, setProjectSearchTerm] = useState("");
 
   // State: Roles Management
   const [currentRolePage, setCurrentRolePage] = useState(1);
@@ -71,27 +78,26 @@ const AdminPanel = () => {
   const indexOfFirstRole = indexOfLastRole - rolesPerPage;
   const currentRoles = (roles || []).slice(indexOfFirstRole, indexOfLastRole);
 
-  // State: Tags Management
-  const [currentTagPage, setCurrentTagPage] = useState(1);
-  const [tagEditModal, setTagEditModal] = useState(false);
-  const [tagValuesModal, setTagValuesModal] = useState(false);
-  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
-  const [editedTagName, setEditedTagName] = useState("");
-  const [editedTagValues, setEditedTagValues] = useState<string[]>([]);
-  const [editedAssignedUsers, setEditedAssignedUsers] = useState<UserOption[]>(
-    []
+  // State: Projects Management
+  const [currentProjectPage, setCurrentProjectPage] = useState(1);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const filteredProjects = (projects || []).filter((project) =>
+    project.projectName.toLowerCase().includes(projectSearchTerm.toLowerCase())
   );
-  const [updatedTagValues, setUpdatedTagValues] = useState("");
-  const filteredTags = (tags || []).filter((tag) =>
-    tag.tagName.toLowerCase().includes(tagSearchTerm.toLowerCase())
+  const projectsPerPage = 5;
+  const totalProjectPages = Math.ceil(
+    (filteredProjects?.length || 0) / ITEMS_PER_PAGE
   );
-  const totalTagParentPages = Math.ceil(
-    (filteredTags?.length || 0) / ITEMS_PER_PAGE
+  const indexOfLastProject = currentProjectPage * projectsPerPage;
+  const indexOfFirstProject = indexOfLastProject - projectsPerPage;
+  const currentProjects = filteredProjects.slice(
+    indexOfFirstProject,
+    indexOfLastProject
   );
-  const indexOfLastTag = currentTagPage * ITEMS_PER_PAGE;
-  const indexOfFirstTag = indexOfLastTag - ITEMS_PER_PAGE;
-  const currentTags = filteredTags.slice(indexOfFirstTag, indexOfLastTag);
-  const [currentEditTagPage, setCurrentEditTagPage] = useState(1);
+
+  // State for Patient Types Management
+  const [patientTypeSearchTerm, setPatientTypeSearchTerm] = useState("");
+  const [currentPatientTypePage, setCurrentPatientTypePage] = useState(1);
 
   // State: Users Management
   const [userModal, setUserModal] = useState(false);
@@ -126,12 +132,6 @@ const AdminPanel = () => {
     indexOfLastAdmin
   );
 
-  // State: Add Tag Modal
-  const [addTagModal, setAddTagModal] = useState(false);
-  const [tagName, setTagName] = useState("");
-  const [tagValues, setTagValues] = useState<string[]>([]);
-  const [assignedUsers, setAssignedUsers] = useState<UserOption[]>([]);
-
   // State: Add User Modal
   const [addUserModal, setAddUserModal] = useState(false);
   const toggleAddUserModal = () => setAddUserModal(!addUserModal);
@@ -142,24 +142,39 @@ const AdminPanel = () => {
 
   // State: Add Admin Modal
   const [addAdminModal, setAddAdminModal] = useState(false);
-  const toggleAddAdminModal = () => setAddAdminModal(!addAdminModal);
 
   // Derived User Options
   const userOptions = users.map((user: User) => ({
     value: user.userId,
     label: user.username,
   }));
-  const filteredUserOptions = userOptions.filter(
-    (option: UserOption) =>
-      !editedAssignedUsers.some(
-        (user: UserOption) => user.label === option.label
-      )
-  );
+
+  // State: Add Project Modal
+  const [addProjectModal, setAddProjectModal] = useState(false);
+  const [projectName, setProjectName] = useState("");
+  const [assignedProjectUsers, setAssignedProjectUsers] = useState<
+    UserOption[]
+  >([]);
+
+  // ***** NEW: State for Add Patient Type Modal *****
+  const [patientTypeName, setPatientTypeName] = useState("");
+  const [addPatientTypeModal, setAddPatientTypeModal] = useState(false);
+
+  // State for Edit Project Modal
+  const [editProjectModal, setEditProjectModal] = useState(false);
+  const [editedProjectName, setEditedProjectName] = useState("");
+  const [editedAssignedProjectUsers, setEditedAssignedProjectUsers] = useState<
+    UserOption[]
+  >([]);
+
+  // State for Edit Patient Type Modal
+  const [editPatientTypeModal, setEditPatientTypeModal] = useState(false);
+  const [selectedPatientType, setSelectedPatientType] =
+    useState<PatientType | null>(null);
 
   // Utility Functions: Role Pagination
   const paginateRolesTable = (pageNumber: number) =>
     setCurrentRolePage(pageNumber);
-
   const getPermissions = (role_id: number) => {
     switch (role_id) {
       case 1:
@@ -172,167 +187,129 @@ const AdminPanel = () => {
         return "No Permissions";
     }
   };
-
   const handleUpdateRole = async (roleId: number, roleName: string) => {
-    const success = await updateRole(selectedRole.roleId, roleName, userEmail);
-
+    const success = await updateRole(selectedRole!.roleId, roleName, userEmail);
     if (success) {
       toggleRoleModal();
     }
   };
 
-  // Utility Functions: Users Managements
+  // Utility Functions: Users Management
   const paginateUsersTable = (pageNumber: number) =>
     setCurrentUserPage(pageNumber);
-
   const handleDeleteUser = async (userId: number) => {
     await deleteUser(userId);
   };
-
   const handleAddUser = async (userDetails: User) => {
     const success = await addUser(userDetails, userDetails.createdByAdminEmail);
-
     if (success) {
       toggleAddUserModal();
     }
   };
-
   const handleUpdateUser = async (
     userId: number,
     userDetails: UpdateUserDetails
   ) => {
     const userDetailsUpdated = { ...userDetails, updatedBy: userEmail };
     const success = await updateUser(userId, userDetailsUpdated);
-
     if (success) {
       toggleUserModal();
     }
   };
 
-  // Utility Functions: Tag Management
-  const paginateTagsTable = (pageNumber: number) =>
-    setCurrentTagPage(pageNumber);
-
-  const openEditTagModal = (tag: Tag) => {
-    const assignedUsers = tag.assignedUsers.map((user, key) => ({
-      value: key,
-      label: user,
-    }));
-    setSelectedTag(tag);
-    setEditedTagName(tag.tagName || "Unnamed Tag");
-    setEditedTagValues([...tag.tagValues]);
-    setEditedAssignedUsers(assignedUsers.length ? assignedUsers : []);
-    setCurrentEditTagPage(1);
-    toggleEditTagModal();
+  // Utility Functions: Projects Management
+  const paginateProjectsTable = (pageNumber: number) =>
+    setCurrentProjectPage(pageNumber);
+  const handleDeleteProject = async (project: Project) => {
+    await deleteProject(project.projectId);
   };
 
-  const handleAddValue = () => {
-    setEditedTagValues((prevValues: string[]) => {
-      const newValues = [...prevValues, ""];
-      const totalValues = newValues.length;
-      const lastPage = Math.ceil(totalValues / ITEMS_PER_PAGE);
-      setCurrentEditTagPage(lastPage);
-      return newValues;
-    });
-  };
-
-  const handleValueChange = (index: number, newValue: string) => {
-    const correctIndex = (currentEditTagPage - 1) * ITEMS_PER_PAGE + index;
-    const updatedValues = [...editedTagValues];
-    updatedValues[correctIndex] = newValue;
-    setEditedTagValues(updatedValues);
-  };
-
-  const handleAddNewTagValueChange = (index: number, newValue: string) => {
-    const correctIndex = (currentEditTagPage - 1) * ITEMS_PER_PAGE + index;
-    const updatedValues = [...tagValues];
-    updatedValues[correctIndex] = newValue;
-    setTagValues(updatedValues);
-  };
-
-  const handleAddNewTagValue = () => {
-    const newValues = [...tagValues];
-    newValues.push("");
-    setTagValues(newValues);
-  };
-
-  const handleDeleteValue = (index: number) => {
-    const correctIndex = (currentEditTagPage - 1) * ITEMS_PER_PAGE + index;
-    const updatedValues = [...editedTagValues];
-    updatedValues.splice(correctIndex, 1);
-    setEditedTagValues(updatedValues);
-  };
-
-  const handleDeleteNewValue = (index: number) => {
-    const correctIndex = (currentEditTagPage - 1) * ITEMS_PER_PAGE + index;
-    const updatedValues = [...tagValues];
-    updatedValues.splice(correctIndex, 1);
-    setTagValues(updatedValues);
-  };
-
-  const handleDeleteOuterTag = (tag: Tag) => {
-    deleteTag(tag.tagId);
-  };
-
-  const applyChangesToEditedTag = async () => {
-    const assignedUsers = editedAssignedUsers.map(
-      (user: UserOption) => user.label
-    );
-
-    const updatedTag: UpdateTagDetails = {
-      ...selectedTag,
-      tagName: editedTagName,
-      tagValues: editedTagValues,
-      updatedByAdminId: null,
-      assignedUsers,
-      updatedBy: userEmail,
-    };
-    const success = await updateTag(updatedTag);
-    if (success) {
-      toggleEditTagModal();
+  const applyChangesToEditedProject = async () => {
+    if (selectedProject) {
+      const updatedProject = {
+        ...selectedProject,
+        projectName: editedProjectName,
+        assignedUserIds: editedAssignedProjectUsers.map((user) => user.value),
+        updatedBy: userEmail,
+      };
+      const success = await updateProject(updatedProject);
+      if (success) {
+        toggleEditProjectModal();
+      }
     }
   };
 
-  const applyChangesToCreatedTag = async () => {
-    const tagDetails: AddTagDetails = {
-      tagName: tagName,
-      tagValues: tagValues,
-      assignedUsers: assignedUsers.map((user) => user.label),
-      adminUsername: userName,
+  // Utility Functions: Patient Types Management
+  const filteredPatientTypes = (patientTypes || []).filter((pt: PatientType) =>
+    pt.name.toLowerCase().includes(patientTypeSearchTerm.toLowerCase())
+  );
+  const patientTypesPerPage = 5;
+  const totalPatientTypePages = Math.ceil(
+    (filteredPatientTypes?.length || 0) / ITEMS_PER_PAGE
+  );
+  const indexOfLastPatientType = currentPatientTypePage * patientTypesPerPage;
+  const indexOfFirstPatientType = indexOfLastPatientType - patientTypesPerPage;
+  const currentPatientTypes = filteredPatientTypes.slice(
+    indexOfFirstPatientType,
+    indexOfLastPatientType
+  );
+
+  const paginatePatientTypesTable = (pageNumber: number) =>
+    setCurrentPatientTypePage(pageNumber);
+  const toggleAddPatientTypeModal = () =>
+    setAddPatientTypeModal(!addPatientTypeModal);
+  const toggleEditPatientTypeModal = () =>
+    setEditPatientTypeModal(!editPatientTypeModal);
+  const openEditPatientTypeModal = (pt: PatientType) => {
+    setSelectedPatientType(pt);
+    toggleEditPatientTypeModal();
+  };
+  const handleDeletePatientType = async (pt: PatientType) => {
+    await deletePatientType(pt.patientTypeId);
+  };
+
+  const applyChangesToCreatedProject = async () => {
+    const projectDetails = {
+      projectName,
+      createdByAdminEmail: userEmail,
+      assignedUserIds: assignedProjectUsers.map((user) => user.value),
     };
-
-    const success = await createTag(tagDetails);
-
+    const success = await addProject(projectDetails);
     if (success) {
-      setTagName("");
-      setTagValues([]);
-      setAssignedUsers([]);
-      toggleAddTagModal();
+      setAddProjectModal(false);
+    }
+  };
+
+  const applyChangesToCreatedPatientType = async () => {
+    const patientTypeDetails = {
+      name: patientTypeName,
+      createdByAdminEmail: userEmail,
+    };
+    const success = await addPatientType(patientTypeDetails);
+    console.log(success);
+    if (success) {
+      toggleAddPatientTypeModal();
+      setAddPatientTypeModal(false);
     }
   };
 
   // Utility Functions: Admins Management
   const paginateAdminsTable = (pageNumber: number) =>
     setCurrentAdminPage(pageNumber);
-
   const handleDeleteAdmin = async (adminId: number) => {
     await deleteAdmin(adminId);
   };
-
   const handleUpdateAdmin = async (
     adminId: number,
     updateAdminDetails: UpdateAdminDetails
   ) => {
     const success = await updateAdmin(adminId, updateAdminDetails);
-
     if (success) {
       toggleEditAdminModal();
     }
   };
-
   const handleAddAdmin = async (adminDetails: AddAdminDetails) => {
     const success = await addAdmin(adminDetails);
-
     if (success) {
       toggleAddAdminModal();
     }
@@ -347,18 +324,24 @@ const AdminPanel = () => {
       setUserSearchTerm(searchValue.toLowerCase());
       setCurrentUserPage(1);
     }
-    if (tableType === TAGS_TABLE_TYPE) {
-      setTagSearchTerm(searchValue.toLowerCase().trim());
-      setCurrentTagPage(1);
+
+    if (tableType === PROJECTS_TABLE_TYPE) {
+      setProjectSearchTerm(searchValue.toLowerCase());
+      setCurrentProjectPage(1);
+    }
+    if (tableType === PATIENT_TYPES_TABLE_TYPE) {
+      setPatientTypeSearchTerm(searchValue.toLowerCase());
+      setCurrentPatientTypePage(1);
     }
   };
 
   // Modal Toggle Functions
   const toggleRoleModal = () => setRoleModal(!roleModal);
-  const toggleTagValuesModal = () => setTagValuesModal(!tagValuesModal);
-  const toggleEditTagModal = () => setTagEditModal(!tagEditModal);
-  const toggleAddTagModal = () => setAddTagModal(!addTagModal);
   const toggleUserModal = () => setUserModal(!userModal);
+  const toggleAddProjectModal = () => setAddProjectModal(!addProjectModal);
+  const toggleEditProjectModal = () => setEditProjectModal(!editProjectModal);
+  const toggleEditAdminModal = () => setEditAdminModal(!editAdminModal);
+  const toggleAddAdminModal = () => setAddAdminModal(!addAdminModal);
 
   // Modal Open Functions
   const openEditRoleModal = (role: Role) => {
@@ -366,21 +349,42 @@ const AdminPanel = () => {
     toggleRoleModal();
   };
 
-  const openTagValuesModal = (tag: Tag) => {
-    setUpdatedTagValues(tag.tagValues.join("\n"));
-    toggleTagValuesModal();
-  };
-
   const openEditUserModal = (user: User) => {
     setSelectedUser(user);
     toggleUserModal();
   };
-
-  const toggleEditAdminModal = () => setEditAdminModal(!editAdminModal);
-
   const openEditAdminModal = (admin: Admin) => {
     setSelectedAdmin(admin);
     toggleEditAdminModal();
+  };
+
+  const openEditProjectModal = (project: Project) => {
+    setSelectedProject(project);
+    setEditedProjectName(project.projectName);
+
+    const assignedUsersOptions = userOptions.filter((userOption) =>
+      project.assignedUserIds?.includes(userOption.value)
+    );
+    setEditedAssignedProjectUsers(assignedUsersOptions);
+    toggleEditProjectModal();
+  };
+
+  const setEditedPatientTypeName = (name: string) => {
+    if (selectedPatientType) {
+      setSelectedPatientType({ ...selectedPatientType, name });
+    }
+  };
+
+  const applyEditedPatientTypeChanges = async () => {
+    if (selectedPatientType) {
+      const success = await updatePatientType({
+        ...selectedPatientType,
+        updatedBy: userEmail,
+      });
+      if (success) {
+        toggleEditPatientTypeModal();
+      }
+    }
   };
 
   return (
@@ -405,31 +409,6 @@ const AdminPanel = () => {
           toggle={toggleRoleModal}
           selectedRole={selectedRole}
           updateRole={handleUpdateRole}
-        />
-
-        <TagEditModal
-          isOpen={tagEditModal}
-          toggle={toggleEditTagModal}
-          editedTagName={editedTagName}
-          setEditedTagName={setEditedTagName}
-          editedTagValues={editedTagValues}
-          setEditedTagValues={setEditedTagValues}
-          editedAssignedUsers={editedAssignedUsers}
-          setEditedAssignedUsers={setEditedAssignedUsers}
-          filteredUserOptions={filteredUserOptions}
-          currentEditTagPage={currentEditTagPage}
-          setCurrentEditTagPage={setCurrentEditTagPage}
-          ITEMS_PER_PAGE={ITEMS_PER_PAGE}
-          handleValueChange={handleValueChange}
-          handleDeleteValue={handleDeleteValue}
-          handleAddValue={handleAddValue}
-          applyChangesToEditedTag={applyChangesToEditedTag}
-        />
-
-        <TagValuesModal
-          isOpen={tagValuesModal}
-          toggle={toggleTagValuesModal}
-          tagValues={updatedTagValues}
         />
 
         <EditAdminModal
@@ -464,38 +443,75 @@ const AdminPanel = () => {
           handleAddAdmin={handleAddAdmin}
         />
 
-        <AddTagModal
-          isOpen={addTagModal}
-          toggle={toggleAddTagModal}
-          tagName={tagName}
-          setTagName={setTagName}
-          tagValues={tagValues}
-          setTagValues={setTagValues}
-          assignedUsers={assignedUsers}
-          setAssignedUsers={setAssignedUsers}
+        <AddProjectModal
+          isOpen={addProjectModal}
+          toggle={toggleAddProjectModal}
+          projectName={projectName}
+          setProjectName={setProjectName}
+          assignedUsers={assignedProjectUsers}
+          setAssignedUsers={setAssignedProjectUsers}
           filteredUserOptions={userOptions}
-          currentEditTagPage={currentEditTagPage}
-          setCurrentEditTagPage={setCurrentEditTagPage}
-          ITEMS_PER_PAGE={ITEMS_PER_PAGE}
-          handleAddNewTagValueChange={handleAddNewTagValueChange}
-          handleDeleteNewValue={handleDeleteNewValue}
-          handleAddNewTagValue={handleAddNewTagValue}
-          applyChangesToCreatedTag={applyChangesToCreatedTag}
+          applyChangesToCreatedProject={applyChangesToCreatedProject}
+        />
+
+        <AddPatientTypeModal
+          isOpen={addPatientTypeModal}
+          toggle={toggleAddPatientTypeModal}
+          patientTypeName={patientTypeName}
+          setPatientTypeName={setPatientTypeName}
+          applyChangesToCreatedPatientType={applyChangesToCreatedPatientType}
+        />
+
+        <EditProjectModal
+          isOpen={editProjectModal}
+          toggle={toggleEditProjectModal}
+          editedProjectName={editedProjectName}
+          setEditedProjectName={setEditedProjectName}
+          editedAssignedUsers={editedAssignedProjectUsers}
+          setEditedAssignedUsers={setEditedAssignedProjectUsers}
+          filteredUserOptions={userOptions}
+          applyChangesToEditedProject={applyChangesToEditedProject}
+        />
+
+        <EditPatientTypeModal
+          isOpen={editPatientTypeModal}
+          toggle={toggleEditPatientTypeModal}
+          editedPatientTypeName={
+            selectedPatientType ? selectedPatientType.name : ""
+          }
+          setEditedPatientTypeName={setEditedPatientTypeName}
+          applyChangesToEditedPatientType={applyEditedPatientTypeChanges}
         />
 
         <Row className="mt-5">
           <div className="col">
-            <TagsManagementTable
-              tags={currentTags}
-              currentPage={currentTagPage}
-              totalPages={totalTagParentPages}
-              paginateTagsTable={paginateTagsTable}
-              openEditTagModal={openEditTagModal}
-              openTagValuesModal={openTagValuesModal}
-              toggleAddTagModal={toggleAddTagModal}
-              handleDeleteOuterTag={handleDeleteOuterTag}
+            <ProjectsManagementTable
+              projects={currentProjects}
+              currentPage={currentProjectPage}
+              totalPages={totalProjectPages}
+              paginateProjectsTable={paginateProjectsTable}
+              openEditProjectModal={openEditProjectModal}
+              toggleAddProjectModal={toggleAddProjectModal}
+              handleDeleteProject={handleDeleteProject}
               onSearch={(searchValue) =>
-                handleOnSearchTable(searchValue, TAGS_TABLE_TYPE)
+                handleOnSearchTable(searchValue, PROJECTS_TABLE_TYPE)
+              }
+            />
+          </div>
+        </Row>
+
+        <Row className="mt-5">
+          <div className="col">
+            <PatientTypesManagementTable
+              patientTypes={currentPatientTypes}
+              currentPage={currentPatientTypePage}
+              totalPages={totalPatientTypePages}
+              paginatePatientTypesTable={paginatePatientTypesTable}
+              openEditPatientTypeModal={openEditPatientTypeModal}
+              toggleAddPatientTypeModal={toggleAddPatientTypeModal}
+              handleDeletePatientType={handleDeletePatientType}
+              onSearch={(searchValue) =>
+                handleOnSearchTable(searchValue, PATIENT_TYPES_TABLE_TYPE)
               }
             />
           </div>

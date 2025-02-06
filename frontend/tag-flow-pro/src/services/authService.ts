@@ -7,6 +7,7 @@ interface LoginResponse {
   token: string;
   userName: string;
   roleId: number;
+  userId: number;
 }
 
 interface AuthResponse {
@@ -29,6 +30,7 @@ const authService = {
         token: response.data.token,
         userName: response.data.userName,
         roleId: response.data.roleId,
+        userId: response.data.userId,
       };
     } catch (error) {
       return {
@@ -38,6 +40,7 @@ const authService = {
         userName: "",
         roleId: 0,
         token: "",
+        userId: 0,
       };
     }
   },

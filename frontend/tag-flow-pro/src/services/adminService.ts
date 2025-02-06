@@ -10,6 +10,12 @@ import { Admin } from "types/Admin";
 import { UpdateAdminDetails } from "types/UpdateAdminDetails";
 import { AddAdminDetails } from "types/AddAdminDetails";
 import { ApiResponse } from "types/ApiResponse";
+import { PatientTypeCreate } from "types/PatientTypeCreate";
+import { PatientTypeUpdate } from "types/PatientTypeUpdate";
+import { ProjectCreate } from "types/ProjectCreate";
+import { ProjectUpdate } from "types/ProjectUpdate";
+import { Project } from "types/Project";
+import { PatientType } from "types/PatientType";
 
 const MAIN_URL = `${API_URL}/admin`;
 
@@ -165,15 +171,14 @@ const adminService = {
   },
 
   addUser: async (
-    userCreateDto: User,
+    userCreate: User,
     createdByAdminEmail: string
   ): Promise<ApiResponse<null>> => {
     try {
       const response = await axios.post(`${MAIN_URL}/add-user`, {
-        ...userCreateDto,
+        ...userCreate,
         createdByAdminEmail,
       });
-
       if (response.data.success) {
         return { success: true, message: "User created successfully." };
       } else {
@@ -240,6 +245,134 @@ const adminService = {
         message:
           error.response?.data?.message ||
           "An error occurred while deleting the admin.",
+      };
+    }
+  },
+
+  getAllProjects: async (): Promise<Project[]> => {
+    try {
+      const response = await axios.get(`${MAIN_URL}/get-all-projects`);
+      return response.data.projects;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      throw error;
+    }
+  },
+
+  addProject: async (project: ProjectCreate): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.post(`${MAIN_URL}/add-project`, project);
+      return {
+        success: true,
+        data: response.data,
+        message: response.data.message,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while adding the project.",
+      };
+    }
+  },
+
+  updateProject: async (project: ProjectUpdate): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.put(`${MAIN_URL}/update-project`, project);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while updating the project.",
+      };
+    }
+  },
+
+  deleteProject: async (projectId: number): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.delete(
+        `${MAIN_URL}/delete-project/${projectId}`
+      );
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while deleting the project.",
+      };
+    }
+  },
+
+  getAllPatientTypes: async (): Promise<PatientType[]> => {
+    try {
+      const response = await axios.get(`${MAIN_URL}/get-all-patient-types`);
+      return response.data.patientTypes;
+    } catch (error) {
+      console.error("Error fetching patient types:", error);
+      throw error;
+    }
+  },
+
+  addPatientType: async (
+    patientType: PatientTypeCreate
+  ): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.post(
+        `${MAIN_URL}/add-patient-type`,
+        patientType
+      );
+      return {
+        success: true,
+        data: response.data,
+        message: response.data.message,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while adding the patient type.",
+      };
+    }
+  },
+
+  updatePatientType: async (
+    patientType: PatientTypeUpdate
+  ): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.put(
+        `${MAIN_URL}/update-patient-type`,
+        patientType
+      );
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while updating the patient type.",
+      };
+    }
+  },
+
+  deletePatientType: async (
+    patientTypeId: number
+  ): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.delete(
+        `${MAIN_URL}/delete-patient-type/${patientTypeId}`
+      );
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while deleting the patient type.",
       };
     }
   },
