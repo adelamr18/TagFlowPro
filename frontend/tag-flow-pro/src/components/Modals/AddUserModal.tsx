@@ -205,19 +205,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               placeholder="Select Role"
             />
           </FormGroup>
-          <FormGroup>
-            <Label for="tags">Tags</Label>
-            <Select
-              id="tags"
-              isMulti
-              value={tagOptions.filter((tag) =>
-                assignedTags.includes(tag.value)
-              )}
-              options={tagOptions}
-              onChange={handleTagChange}
-              placeholder="Assign Tags"
-            />
-          </FormGroup>
         </Form>
       </ModalBody>
       <ModalFooter>
