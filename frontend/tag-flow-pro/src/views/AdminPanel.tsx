@@ -425,7 +425,6 @@ const AdminPanel = () => {
           user={selectedUser}
           roles={roles}
           preSelectedTags={selectedUser?.assignedTags ?? []}
-          tags={tags}
           updateUser={handleUpdateUser}
         />
 

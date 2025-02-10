@@ -13,16 +13,16 @@
     "tag-flow-pro"
   ],
   "author": "Adel Gebril",
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "cross-env PUBLIC_URL=/ react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start",
-    "compile:scss": "sass src/assets/scss/tag-flow-pro.scss src/assets/css/tag-flow-pro.css",
-    "minify:scss": "sass src/assets/scss/tag-flow-pro.scss src/assets/css/tag-flow-pro.min.css --style compressed",
-    "build:scss": "npm run compile:scss && npm run minify:scss && npm run map:scss"
-  },
+ "scripts": {
+  "start": "react-scripts start",
+  "build": "cross-env PUBLIC_URL=/ react-scripts build && mv build dist",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject",
+  "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start",
+  "compile:scss": "sass src/assets/scss/tag-flow-pro.scss src/assets/css/tag-flow-pro.css",
+  "minify:scss": "sass src/assets/scss/tag-flow-pro.scss src/assets/css/tag-flow-pro.min.css --style compressed",
+  "build:scss": "npm run compile:scss && npm run minify:scss && npm run map:scss"
+},
   "eslintConfig": {
     "extends": "react-app"
   },
