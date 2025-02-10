@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Select, { MultiValue } from "react-select";
+import Select from "react-select";
 import {
   Card,
   CardBody,
@@ -35,9 +35,10 @@ const FileUpload: React.FC = () => {
     value: string;
     label: string;
   } | null>(null);
-  const [selectedPatientTypes, setSelectedPatientTypes] = useState<
-    MultiValue<{ value: string; label: string }>
-  >([]);
+  const [selectedPatientType, setSelectedPatientType] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
   const [fileUploadedOn, setFileUploadedOn] = useState<string>(
     new Date().toISOString().slice(0, 10)
   );
@@ -57,9 +58,22 @@ const FileUpload: React.FC = () => {
             label: project.projectName,
           }));
 
+  const availablePatientTypes = patientTypes.map((pt) => ({
+    value: pt.patientTypeId.toString(),
+    label: pt.name,
+  }));
+
   const handleFileUpload = async () => {
     if (!file) {
       toast.error("Please select a file to upload");
+      return;
+    }
+    if (!selectedProject) {
+      toast.error("Project is required.");
+      return;
+    }
+    if (!selectedPatientType) {
+      toast.error("Patient type is required.");
       return;
     }
 
@@ -91,18 +105,14 @@ const FileUpload: React.FC = () => {
     const sheet = workbook.Sheets[sheetName];
     const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
     const fileRowsCount = sheetData.length - 1;
-    const selectedProjectId = selectedProject
-      ? parseInt(selectedProject.value, 10)
-      : null;
-    const selectedPatientTypesDetails = selectedPatientTypes.map((pt) =>
-      parseInt(pt.value, 10)
-    );
+    const selectedProjectId = parseInt(selectedProject.value, 10);
+    const selectedPatientTypeId = parseInt(selectedPatientType.value, 10);
     const fileDetails: UploadFileDetails = {
       fileName: file.name,
       fileStatus: UNPROCESSED_FILE_STATUS,
       fileRowsCount,
       selectedProjectId,
-      selectedPatientTypeIds: selectedPatientTypesDetails,
+      selectedPatientTypeIds: [selectedPatientTypeId],
       uploadedByUserName: userName || "",
       isAdmin: parseInt(roleId || "0", 10) === ADMIN_ROLE_ID,
       userId,
@@ -155,17 +165,17 @@ const FileUpload: React.FC = () => {
                 </div>
                 <div className="mb-4">
                   <label className="form-label">
-                    <strong>Select Patient Types</strong>
+                    <strong>Select Patient Type</strong>
                   </label>
                   <Select
-                    options={patientTypes.map((pt) => ({
-                      value: pt.patientTypeId.toString(),
-                      label: pt.name,
-                    }))}
-                    onChange={(newValue) => setSelectedPatientTypes(newValue)}
-                    value={selectedPatientTypes}
-                    placeholder="Select Patient Types..."
-                    isMulti
+                    options={availablePatientTypes}
+                    onChange={(newValue) =>
+                      setSelectedPatientType(
+                        newValue as { value: string; label: string } | null
+                      )
+                    }
+                    value={selectedPatientType}
+                    placeholder="Select Patient Type..."
                   />
                 </div>
                 <div className="mb-4">

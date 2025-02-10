@@ -13,7 +13,6 @@ import {
 import Select from "react-select";
 import { User } from "types/User";
 import { Role } from "types/Role";
-import { Tag } from "types/Tag";
 import { UpdateUserDetails } from "types/UpdateUserDetails";
 
 interface EditUserModalProps {
@@ -21,7 +20,6 @@ interface EditUserModalProps {
   toggle: () => void;
   user: User | null;
   roles: Role[];
-  tags: Tag[];
   preSelectedTags: string[];
   updateUser: (userId: number, userDetails: UpdateUserDetails) => void;
 }
@@ -31,18 +29,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
   toggle,
   user,
   roles,
-  tags,
-  preSelectedTags,
   updateUser,
 }) => {
   const [username, setUsername] = useState("");
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-
-  const tagOptions = tags.map((tag) => ({
-    value: tag.tagId,
-    label: tag.tagName,
-  }));
 
   const roleOptions = roles
     .filter((role) => role.roleId !== 1)
@@ -55,26 +45,11 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     if (user) {
       setUsername(user.username);
       setSelectedRoleId(user.roleId || null);
-
-      const initialSelectedTags = tags.filter((tag) =>
-        preSelectedTags.includes(tag.tagName)
-      );
-      setSelectedTags(initialSelectedTags);
     }
-  }, [user, preSelectedTags, tags]);
+  }, [user]);
 
   const handleRoleChange = (selectedOption: any) => {
     setSelectedRoleId(selectedOption ? selectedOption.value : null);
-  };
-
-  const handleTagsChange = (selectedOptions: any) => {
-    setSelectedTags(
-      selectedOptions
-        ? selectedOptions.map((option: any) =>
-            tags.find((tag) => tag.tagId === option.value)
-          )
-        : []
-    );
   };
 
   const handleSubmit = async () => {
@@ -85,7 +60,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     updateUser(user.userId, {
       username,
       roleId: selectedRoleId,
-      assignedTagIds: selectedTags.map((tag) => tag.tagId),
     });
   };
 
@@ -110,19 +84,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
               options={roleOptions}
               onChange={handleRoleChange}
               placeholder="Select Role"
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label for="tags">Tags</Label>
-            <Select
-              id="tags"
-              value={selectedTags.map((tag) =>
-                tagOptions.find((option) => option.value === tag.tagId)
-              )}
-              options={tagOptions}
-              isMulti
-              onChange={handleTagsChange}
-              placeholder="Select Tags"
             />
           </FormGroup>
         </Form>
