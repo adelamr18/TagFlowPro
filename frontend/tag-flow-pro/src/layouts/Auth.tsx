@@ -39,19 +39,6 @@ const Auth = () => {
       <div className="main-content" ref={mainContent}>
         <AuthNavbar />
         <div className="header bg-gradient-info py-7 py-lg-8">
-          <Container>
-            <div className="header-body text-center mb-7">
-              <Row className="justify-content-center">
-                <Col lg="5" md="6">
-                  <h1 className="text-white">TagFlowPro</h1>
-                  <p className="text-lead text-light">
-                    Upload and organize files seamlessly while managing tags
-                    with ease using TagFlowPro.{" "}
-                  </p>
-                </Col>
-              </Row>
-            </div>
-          </Container>
           <div className="separator separator-bottom separator-skew zindex-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"

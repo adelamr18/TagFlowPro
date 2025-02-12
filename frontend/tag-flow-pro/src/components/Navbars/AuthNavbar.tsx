@@ -12,9 +12,10 @@ import {
 } from "reactstrap";
 import "./AuthNavbar.css";
 import { useAuth } from "context/AuthContext";
+import { ADMIN_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
 
 const AdminNavbar = () => {
-  const { logout } = useAuth();
+  const { logout, userName, roleId } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -30,12 +31,34 @@ const AdminNavbar = () => {
       <Navbar className="navbar-top navbar-horizontal navbar-dark" expand="md">
         <Container className="px-4">
           <NavbarBrand to="/" tag={Link} className="navbar-brand-custom">
-            <img
-              alt="React Logo"
-              src={require("../../assets/img/brand/react-icon.png")}
-              className="navbar-brand-img-modified"
-            />
-            <h4 className="navbar-brand-text">TagFlowPro</h4>
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <img
+                alt="Selat Logo"
+                src={require("../../assets/img/brand/selat-logo.png")}
+                className="navbar-brand-img-modified"
+                style={{ marginBottom: 0 }}
+              />
+              <h4
+                className="navbar-brand-text-modified"
+                style={{
+                  margin: 0,
+                  padding: 0,
+                  lineHeight: 1,
+                  textAlign: "center",
+                }}
+              >
+                Selat Check
+                <br />
+                Insurance System
+              </h4>
+            </div>
           </NavbarBrand>
 
           <button className="navbar-toggler" id="navbar-collapse-main">
@@ -67,10 +90,12 @@ const AdminNavbar = () => {
             </div>
             <Nav className="ml-auto" navbar>
               <NavItem>
-                <NavLink className="nav-link-icon" to="/" tag={Link}>
-                  <i className="ni ni-planet" />
-                  <span className="nav-link-inner--text">Dashboard</span>
-                </NavLink>
+                {userName && (
+                  <NavLink className="nav-link-icon" to="/" tag={Link}>
+                    <i className="ni ni-planet" />
+                    <span className="nav-link-inner--text">Dashboard</span>
+                  </NavLink>
+                )}
               </NavItem>
               <NavItem>
                 <NavLink className="nav-link-icon" to="/auth/login" tag={Link}>
@@ -79,14 +104,18 @@ const AdminNavbar = () => {
                 </NavLink>
               </NavItem>
               <NavItem>
-                <NavLink
-                  className="nav-link-icon"
-                  to="/admin/admin-panel"
-                  tag={Link}
-                >
-                  <i className="ni ni-bullet-list-67" />
-                  <span className="nav-link-inner--text">Admin Panel</span>
-                </NavLink>
+                {userName &&
+                  (parseInt(roleId) === ADMIN_ROLE_ID ||
+                    parseInt(roleId) === VIEWER_ROLE_ID) && (
+                    <NavLink
+                      className="nav-link-icon"
+                      to="/admin/admin-panel"
+                      tag={Link}
+                    >
+                      <i className="ni ni-bullet-list-67" />
+                      <span className="nav-link-inner--text">Admin Panel</span>
+                    </NavLink>
+                  )}
               </NavItem>
               <NavItem>
                 <NavLink

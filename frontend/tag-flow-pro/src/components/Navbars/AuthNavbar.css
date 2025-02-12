@@ -4,9 +4,9 @@
 }
 
 .navbar-brand-img-modified {
-  filter: brightness(0) invert(1);
-  height: 40px;
+  height: 55px !important;
   margin-right: 10px;
+  position: absolute !important;
 }
 
 .navbar-brand-text {
@@ -15,6 +15,16 @@
   margin: 0;
   font-size: 20px;
   text-transform: none;
+}
+
+.navbar-brand-text-modified {
+  color: white;
+  font-weight: bold;
+  margin: 0;
+  font-size: 20px;
+  text-transform: none;
+  margin-top: 32px !important;
+  text-align: center;
 }
 
 .collapse-brand {

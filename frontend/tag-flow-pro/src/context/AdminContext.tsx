@@ -69,6 +69,11 @@ interface AdminContextType {
   addPatientType: (pt: PatientTypeCreate) => Promise<boolean>;
   updatePatientType: (pt: PatientTypeUpdate) => Promise<boolean>;
   deletePatientType: (patientTypeId: number) => Promise<boolean>;
+  updateUserByUsername: (
+    username: string,
+    roleId: number,
+    userId: number
+  ) => Promise<boolean>;
 }
 
 const AdminContext = createContext<AdminContextType>({
@@ -103,6 +108,7 @@ const AdminContext = createContext<AdminContextType>({
   deletePatientType: () => Promise.resolve(false),
   projects: [],
   patientTypes: [],
+  updateUserByUsername: () => Promise.resolve(false),
 });
 
 export const AdminProvider: React.FC<{ children: ReactNode }> = ({
@@ -436,6 +442,25 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const updateUserByUsername = async (
+    username: string,
+    roleId: number,
+    userId: number
+  ): Promise<boolean> => {
+    const { success, message } = await adminService.updateUserByUsername(
+      username,
+      roleId,
+      userId
+    );
+    if (success) {
+      console.log("hello");
+      toast.success(message || "User updated successfully!");
+    } else {
+      toast.error(message || "Failed to update user. Please try again.");
+    }
+    return success;
+  };
+
   useEffect(() => {
     fetchRoles();
     fetchAllTags();
@@ -479,6 +504,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({
         addPatientType,
         updatePatientType,
         deletePatientType,
+        updateUserByUsername,
       }}
     >
       {children}

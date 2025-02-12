@@ -6,6 +6,18 @@
   font-size: 20px;
 }
 
+.navbar-brand-title-modified {
+  color: #61dafb;
+  font-weight: bold;
+  margin: 0;
+  margin-left: 10px;
+  font-size: 20px;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  margin-top: 35px;
+}
+
 .collapse-brand {
   display: flex;
   align-items: center;

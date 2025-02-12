@@ -37,8 +37,14 @@ const Sidebar = (props) => {
     setCollapseOpen(false);
   };
   const createLinks = (routes) => {
-    return routes.map((prop, key) => {
-      return (
+    return routes
+      .filter(
+        (route) =>
+          route.path !== "/login" &&
+          route.path !== "/logout" &&
+          route.path !== "/user-profile"
+      )
+      .map((prop, key) => (
         <NavItem key={key}>
           <NavLink
             to={prop.layout + prop.path}
@@ -49,8 +55,7 @@ const Sidebar = (props) => {
             {prop.name}
           </NavLink>
         </NavItem>
-      );
-    });
+      ));
   };
 
   const { routes, logo } = props;
@@ -90,14 +95,29 @@ const Sidebar = (props) => {
             className="pt-0 d-flex align-items-center"
             {...navbarBrandProps}
           >
-            <img
-              alt={logo.imgAlt}
-              className="navbar-brand-img"
-              src={logo.imgSrc}
-            />
-            <h3 className="navbar-brand-title">TagFlowPro</h3>
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+              }}
+            >
+              <img
+                alt={logo.imgAlt}
+                className="navbar-brand-img-modified"
+                src={logo.imgSrc}
+              />
+              <h3 className="navbar-brand-title-modified">
+                Selat Check
+                <br />
+                Insurance System
+              </h3>
+            </div>
           </NavbarBrand>
         ) : null}
+
         <Nav className="align-items-center d-md-none">
           <UncontrolledDropdown nav>
             <DropdownMenu className="dropdown-menu-arrow" right>
