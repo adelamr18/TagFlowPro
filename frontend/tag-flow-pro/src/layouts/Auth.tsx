@@ -43,10 +43,15 @@ const Auth = () => {
             <div className="header-body text-center mb-7">
               <Row className="justify-content-center">
                 <Col lg="5" md="6">
-                  <h1 className="text-white">TagFlowPro</h1>
+                  <h1 className="text-white">
+                    Selat Check
+                    <br />
+                    Insurance System
+                  </h1>
                   <p className="text-lead text-light">
-                    Upload and organize files seamlessly while managing tags
-                    with ease using TagFlowPro.{" "}
+                    Streamline insurance claim verification and patient record
+                    management effortlessly with our secure, all-in-one
+                    platform.
                   </p>
                 </Col>
               </Row>

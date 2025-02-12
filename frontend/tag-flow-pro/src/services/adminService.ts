@@ -376,6 +376,31 @@ const adminService = {
       };
     }
   },
+
+  updateUserByUsername: async (
+    username: string,
+    roleId: number,
+    userId: number
+  ): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axios.put(
+        `${MAIN_URL}/update-user-by-username/${username}`,
+        {
+          username,
+          roleId,
+          userId,
+        }
+      );
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while updating the user.",
+      };
+    }
+  },
 };
 
 export default adminService;

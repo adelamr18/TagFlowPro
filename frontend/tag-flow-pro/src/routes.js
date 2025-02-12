@@ -6,6 +6,7 @@ import ProtectedRoute from "components/Utils/ProtectedRoute.tsx";
 import Logout from "views/Logout";
 import FileUpload from "views/FileUpload";
 import FileStatus from "views/FileStatus";
+import Profile from "views/Profile";
 
 var routes = [
   {
@@ -65,6 +66,13 @@ var routes = [
       </ProtectedRoute>
     ),
     layout: "/file",
+  },
+  {
+    path: "/user-profile",
+    name: "User Profile",
+    icon: "ni ni-single-02 text-yellow",
+    component: <Profile />,
+    layout: "/user",
   },
   {
     path: "/forget-password",

@@ -51,11 +51,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
       label: role.roleName,
     }));
 
-  const tagOptions = tags.map((tag) => ({
-    value: tag.tagId,
-    label: tag.tagName,
-  }));
-
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex =
     /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{9,}$/;
@@ -96,10 +91,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
 
   const handleRoleChange = (selectedOption: any) => {
     setSelectedRoleId(selectedOption ? selectedOption.value : null);
-  };
-
-  const handleTagChange = (selectedOptions: any) => {
-    setAssignedTags(selectedOptions.map((option: any) => option.value));
   };
 
   const validateForm = () => {
@@ -203,19 +194,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               options={roleOptions}
               onChange={handleRoleChange}
               placeholder="Select Role"
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label for="tags">Tags</Label>
-            <Select
-              id="tags"
-              isMulti
-              value={tagOptions.filter((tag) =>
-                assignedTags.includes(tag.value)
-              )}
-              options={tagOptions}
-              onChange={handleTagChange}
-              placeholder="Assign Tags"
             />
           </FormGroup>
         </Form>

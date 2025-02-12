@@ -14,7 +14,7 @@ interface AdminProps {
   location: Location;
 }
 
-const Admin = (props: AdminProps) => {
+const User = (props: AdminProps) => {
   const mainContent = useRef(null);
   const location = useLocation();
   const { roleId } = useAuth();
@@ -50,11 +50,7 @@ const Admin = (props: AdminProps) => {
 
   const getRoutes = (routes: AppRoute[]) => {
     return routes.map((prop) => {
-      if (
-        prop.layout === "/admin" ||
-        prop.layout === "/auth/forgot-password" ||
-        prop.layout === "/file"
-      ) {
+      if (prop.layout === "/user") {
         return (
           <Route key={prop.path} path={prop.path} element={prop.component} />
         );
@@ -104,4 +100,4 @@ const Admin = (props: AdminProps) => {
   );
 };
 
-export default Admin;
+export default User;

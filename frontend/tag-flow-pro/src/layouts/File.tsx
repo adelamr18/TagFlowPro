@@ -83,7 +83,7 @@ const File = (props: AdminProps) => {
         routes={filteredRoutes}
         logo={{
           innerLink: "/admin/index",
-          imgSrc: require("../assets/img/brand/react-icon.png"),
+          imgSrc: require("../assets/img/brand/selat-logo.png"),
           imgAlt: "...",
         }}
       />
