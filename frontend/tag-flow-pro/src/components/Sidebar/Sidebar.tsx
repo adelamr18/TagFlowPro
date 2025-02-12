@@ -157,32 +157,90 @@ const Sidebar = (props) => {
                   xs="6"
                 >
                   {logo.innerLink ? (
-                    <Link to={logo.innerLink} className="collapse-brand-link">
-                      <img
-                        alt={logo.imgAlt}
-                        src={logo.imgSrc}
-                        className="collapse-brand-img"
-                      />
-                      <h3 className="collapse-brand-text">
-                        {" "}
-                        Selat Check
-                        <br />
-                        Insurance System
-                      </h3>
+                    <Link
+                      to={logo.innerLink}
+                      className="collapse-brand-link"
+                      style={{ display: "block", width: "100%" }}
+                    >
+                      <div
+                        style={{
+                          position: "relative",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          minHeight: "85px", // 50px (image) + 35px gap
+                        }}
+                      >
+                        <img
+                          alt={logo.imgAlt}
+                          src={logo.imgSrc}
+                          className="collapse-brand-img"
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            height: "50px",
+                          }}
+                        />
+                        <h3
+                          className="collapse-brand-text"
+                          style={{
+                            margin: 0,
+                            padding: 0,
+                            lineHeight: 1,
+                            marginTop: "35px", // fixed gap between image and text
+                            textAlign: "center",
+                          }}
+                        >
+                          Selat Check
+                          <br />
+                          Insurance System
+                        </h3>
+                      </div>
                     </Link>
                   ) : (
-                    <a href={logo.outterLink} className="collapse-brand-link">
-                      <img
-                        alt={logo.imgAlt}
-                        src={logo.imgSrc}
-                        className="collapse-brand-img"
-                      />
-                      <h3 className="collapse-brand-text">
-                        {" "}
-                        Selat Check
-                        <br />
-                        Insurance System
-                      </h3>
+                    <a
+                      href={logo.outterLink}
+                      className="collapse-brand-link"
+                      style={{ display: "block", width: "100%" }}
+                    >
+                      <div
+                        style={{
+                          position: "relative",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          minHeight: "85px", // 50px (image) + 35px gap
+                        }}
+                      >
+                        <img
+                          alt={logo.imgAlt}
+                          src={logo.imgSrc}
+                          className="collapse-brand-img"
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            height: "50px",
+                          }}
+                        />
+                        <h3
+                          className="collapse-brand-text"
+                          style={{
+                            margin: 0,
+                            padding: 0,
+                            lineHeight: 1,
+                            marginTop: "35px", // fixed gap between image and text
+                            textAlign: "center",
+                          }}
+                        >
+                          Selat Check
+                          <br />
+                          Insurance System
+                        </h3>
+                      </div>
                     </a>
                   )}
                 </Col>

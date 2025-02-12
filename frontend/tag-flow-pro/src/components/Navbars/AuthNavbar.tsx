@@ -71,19 +71,51 @@ const AdminNavbar = () => {
                   className="collapse-brand d-flex align-items-center"
                   xs="6"
                 >
-                  <Link to="/" className="collapse-brand-link">
-                    <img
-                      alt="React Logo"
-                      src={require("../../assets/img/brand/react-icon.png")}
-                      className="collapse-brand-img"
-                    />
-                    <h3 className="collapse-brand-text">
-                      {" "}
-                      Selat Check
-                      <br />
-                      Insurance System
-                    </h3>
-                  </Link>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      width: "100%",
+                    }}
+                  >
+                    <Link to="/" className="collapse-brand-link">
+                      <div
+                        style={{
+                          position: "relative",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                        }}
+                      >
+                        <img
+                          alt="React Logo"
+                          src={require("../../assets/img/brand/selat-logo.png")}
+                          className="collapse-brand-img"
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            height: "50px",
+                          }}
+                        />
+                        <h3
+                          className="collapse-brand-text"
+                          style={{
+                            margin: 0,
+                            padding: 0,
+                            lineHeight: 1,
+                            marginTop: "35px", // 35px gap between image and text
+                            textAlign: "center",
+                          }}
+                        >
+                          Selat Check
+                          <br />
+                          Insurance System
+                        </h3>
+                      </div>
+                    </Link>
+                  </div>
                 </Col>
                 <Col className="collapse-close" xs="6">
                   <button className="navbar-toggler" id="navbar-collapse-main">
