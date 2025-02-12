@@ -163,7 +163,12 @@ const Sidebar = (props) => {
                         src={logo.imgSrc}
                         className="collapse-brand-img"
                       />
-                      <h3 className="collapse-brand-text">TagFlowPro</h3>
+                      <h3 className="collapse-brand-text">
+                        {" "}
+                        Selat Check
+                        <br />
+                        Insurance System
+                      </h3>
                     </Link>
                   ) : (
                     <a href={logo.outterLink} className="collapse-brand-link">
@@ -172,7 +177,12 @@ const Sidebar = (props) => {
                         src={logo.imgSrc}
                         className="collapse-brand-img"
                       />
-                      <h3 className="collapse-brand-text">TagFlowPro</h3>
+                      <h3 className="collapse-brand-text">
+                        {" "}
+                        Selat Check
+                        <br />
+                        Insurance System
+                      </h3>
                     </a>
                   )}
                 </Col>

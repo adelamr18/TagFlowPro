@@ -77,7 +77,12 @@ const AdminNavbar = () => {
                       src={require("../../assets/img/brand/react-icon.png")}
                       className="collapse-brand-img"
                     />
-                    <h3 className="collapse-brand-text">TagFlowPro</h3>
+                    <h3 className="collapse-brand-text">
+                      {" "}
+                      Selat Check
+                      <br />
+                      Insurance System
+                    </h3>
                   </Link>
                 </Col>
                 <Col className="collapse-close" xs="6">

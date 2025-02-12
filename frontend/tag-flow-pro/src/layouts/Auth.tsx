@@ -39,6 +39,24 @@ const Auth = () => {
       <div className="main-content" ref={mainContent}>
         <AuthNavbar />
         <div className="header bg-gradient-info py-7 py-lg-8">
+          <Container>
+            <div className="header-body text-center mb-7">
+              <Row className="justify-content-center">
+                <Col lg="5" md="6">
+                  <h1 className="text-white">
+                    Selat Check
+                    <br />
+                    Insurance System
+                  </h1>
+                  <p className="text-lead text-light">
+                    Streamline insurance claim verification and patient record
+                    management effortlessly with our secure, all-in-one
+                    platform.
+                  </p>
+                </Col>
+              </Row>
+            </div>
+          </Container>
           <div className="separator separator-bottom separator-skew zindex-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"
