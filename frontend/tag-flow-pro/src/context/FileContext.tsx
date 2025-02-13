@@ -18,7 +18,8 @@ interface FileContextType {
   getAllFiles: () => Promise<void>;
   deleteFile: (fileId: number) => Promise<void>;
   getOverview: (
-    uploadDate: string,
+    fromDate: string,
+    toDate: string,
     projectName: string,
     patientType: string
   ) => Promise<OverviewDto | null>;
@@ -119,16 +120,23 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
     }
   };
 
+  // Updated getOverview: Convert "all" selection to an empty string.
   const getOverview = async (
-    uploadDate: string,
+    fromDate: string,
+    toDate: string,
     projectName: string,
     patientType: string
   ): Promise<OverviewDto | null> => {
+    const projectParam =
+      projectName.trim().toLowerCase() === "all" ? "" : projectName;
+    const patientParam =
+      patientType.trim().toLowerCase() === "all" ? "" : patientType;
     try {
       const { success, data, message } = await fileService.getOverview(
-        uploadDate,
-        projectName,
-        patientType
+        fromDate,
+        toDate,
+        projectParam,
+        patientParam
       );
       if (success && data) {
         return data;
@@ -146,7 +154,8 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
 
   useEffect(() => {
     getAllFiles();
-    getOverview("", "", "");
+    // On initial load, fetch overview with no filters (send "all" so that getOverview converts them to empty strings)
+    getOverview("", "", "all", "all");
   }, []);
 
   return (

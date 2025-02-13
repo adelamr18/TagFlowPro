@@ -46,28 +46,6 @@ const Index = (props) => {
     setChartExample1Data("data" + index);
   };
 
-  useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    getOverview(today, "", "").then((data) => {
-      if (data && data.totalPatientsPerProjectOverview) {
-        const labels = Object.keys(data.totalPatientsPerProjectOverview);
-        const values = Object.values(data.totalPatientsPerProjectOverview);
-        setTotalPatientsChartData({
-          labels,
-          datasets: [
-            {
-              label: "Total Patients",
-              data: values,
-              backgroundColor: "rgba(255,159,64,0.6)", // Orange background
-              borderColor: "rgba(255,159,64,1)", // Orange border
-              borderWidth: 1,
-            },
-          ],
-        });
-      }
-    });
-  }, [getOverview]);
-
   return (
     <>
       <Header />

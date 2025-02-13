@@ -96,7 +96,7 @@ const fileService = {
       link.download = fileName;
       link.click();
       return { success: true, message: "File downloaded successfully!" };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message:
@@ -110,7 +110,7 @@ const fileService = {
     try {
       const response = await axios.delete(`${MAIN_URL}/delete/${fileId}`);
       return { success: true, message: response.data.message };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message:
@@ -120,14 +120,16 @@ const fileService = {
     }
   },
 
+  // Updated getOverview now sends fromDate and toDate
   getOverview: async (
-    uploadDate: string,
+    fromDate: string,
+    toDate: string,
     projectName: string,
     patientType: string
   ): Promise<ApiResponse<OverviewDto>> => {
     try {
       const response = await axios.get(`${MAIN_URL}/overview`, {
-        params: { uploadDate, projectName, patientType },
+        params: { fromDate, toDate, projectName, patientType },
       });
       return {
         success: true,
