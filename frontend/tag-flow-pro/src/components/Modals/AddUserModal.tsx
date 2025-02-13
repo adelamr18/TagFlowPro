@@ -16,6 +16,7 @@ import { Tag } from "types/Tag";
 import { Role } from "types/Role";
 import { User } from "types/User";
 import { useAuth } from "context/AuthContext";
+import { ADMIN_ROLE_ID } from "shared/consts";
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -45,7 +46,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
   const { userEmail } = useAuth();
 
   const roleOptions = roles
-    .filter((role) => role.roleId !== 1)
+    .filter((role) => role.roleId !== ADMIN_ROLE_ID)
     .map((role) => ({
       value: role.roleId,
       label: role.roleName,

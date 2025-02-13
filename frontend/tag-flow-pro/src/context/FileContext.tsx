@@ -11,11 +11,17 @@ import { toast } from "react-toastify";
 import fileService from "services/fileService";
 import { FileStatus } from "types/FileStatus";
 import signalRService from "services/signalRService";
+import { OverviewDto } from "types/OverviewDto";
 
 interface FileContextType {
   uploadFile: (fileDetails: UploadFileDetails, file: File) => Promise<boolean>;
   getAllFiles: () => Promise<void>;
   deleteFile: (fileId: number) => Promise<void>;
+  getOverview: (
+    uploadDate: string,
+    projectName: string,
+    patientType: string
+  ) => Promise<OverviewDto | null>;
   files: FileStatus[];
   setFiles: React.Dispatch<React.SetStateAction<FileStatus[]>>;
 }
@@ -24,6 +30,7 @@ const FileContext = createContext<FileContextType>({
   uploadFile: async () => false,
   getAllFiles: async () => {},
   deleteFile: async () => {},
+  getOverview: async () => null,
   files: [],
   setFiles: () => {},
 });
@@ -44,7 +51,6 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
       fileStatus: string
     ) => {
       await getAllFiles();
-
       setFiles((prevFiles) =>
         prevFiles.map((file) =>
           file.fileId === fileId ? { ...file, downloadLink, fileStatus } : file
@@ -66,7 +72,6 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
     try {
       const { success, message, fileName, fileId } =
         await fileService.uploadFile(fileDetails, file);
-
       if (success) {
         toast.success(message || "File uploaded successfully!");
         if (fileName) {
@@ -76,7 +81,6 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
       } else {
         toast.error(message || "Failed to upload file. Please try again.");
       }
-
       return success;
     } catch (error) {
       toast.error("An error occurred during file upload. Please try again.");
@@ -115,13 +119,46 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
     }
   };
 
+  const getOverview = async (
+    uploadDate: string,
+    projectName: string,
+    patientType: string
+  ): Promise<OverviewDto | null> => {
+    try {
+      const { success, data, message } = await fileService.getOverview(
+        uploadDate,
+        projectName,
+        patientType
+      );
+      if (success && data) {
+        return data;
+      } else {
+        toast.error(message || "Failed to fetch overview.");
+        return null;
+      }
+    } catch (error) {
+      toast.error(
+        "An error occurred while fetching overview. Please try again."
+      );
+      return null;
+    }
+  };
+
   useEffect(() => {
     getAllFiles();
+    getOverview("", "", "");
   }, []);
 
   return (
     <FileContext.Provider
-      value={{ uploadFile, getAllFiles, deleteFile, files, setFiles }}
+      value={{
+        uploadFile,
+        getAllFiles,
+        deleteFile,
+        getOverview,
+        files,
+        setFiles,
+      }}
     >
       {children}
     </FileContext.Provider>

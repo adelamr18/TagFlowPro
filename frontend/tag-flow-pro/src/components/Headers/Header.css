@@ -1,0 +1,42 @@
+.card-body-modified {
+  padding: 2rem 1rem !important;
+}
+
+.btn-group .btn.active {
+  background-color: white !important;
+  color: black !important;
+  border-color: #ccc !important; /* Optional: Adjust border color */
+}
+
+/* Ensure the button is positioned relatively to make the z-index work */
+.btn-group .btn {
+  position: relative;
+  z-index: 2; /* Ensure the button has a higher z-index */
+}
+
+/* Make the dropdown appear above the button by giving it a higher z-index */
+.btn-group .btn:focus + .dropdown-menu,
+.btn-group .btn.active + .dropdown-menu {
+  z-index: 1050 !important; /* Higher z-index to ensure it's on top */
+  position: absolute;
+}
+
+/* Style for the dropdown when it is visible */
+.dropdown-menu {
+  background-color: white !important; /* Set the background color of the dropdown */
+  border: 1px solid #ccc !important; /* Set the border color */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important; /* Optional: Add shadow for better visibility */
+  z-index: 1060 !important; /* Ensure the dropdown is on top of other elements */
+}
+
+/* Adjusting button color on hover when it's active */
+.btn-group .btn:hover {
+  background-color: #f0f0f0 !important; /* Light hover effect */
+  color: black !important;
+}
+
+/* Optional: Add focus styles for the button when selected */
+.btn-group .btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Blue outline */
+}

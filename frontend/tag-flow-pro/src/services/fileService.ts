@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_URL } from "shared/consts";
 import { ApiResponse } from "types/ApiResponse";
+import { OverviewDto } from "types/OverviewDto";
 import { UploadFileDetails } from "types/UploadFileDetails";
 
 const MAIN_URL = `${API_URL}/file`;
@@ -86,17 +87,14 @@ const fileService = {
       const downloadUrl = `${MAIN_URL}/download?fileName=${encodeURIComponent(
         fileName
       )}&fileId=${fileId}`;
-
       const response = await axios.get(downloadUrl, { responseType: "blob" });
       const blob = new Blob([response.data], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
       const link = document.createElement("a");
-
       link.href = URL.createObjectURL(blob);
       link.download = fileName;
       link.click();
-
       return { success: true, message: "File downloaded successfully!" };
     } catch (error) {
       return {
@@ -118,6 +116,30 @@ const fileService = {
         message:
           error.response?.data?.message ||
           "An error occurred while deleting the file.",
+      };
+    }
+  },
+
+  getOverview: async (
+    uploadDate: string,
+    projectName: string,
+    patientType: string
+  ): Promise<ApiResponse<OverviewDto>> => {
+    try {
+      const response = await axios.get(`${MAIN_URL}/overview`, {
+        params: { uploadDate, projectName, patientType },
+      });
+      return {
+        success: true,
+        data: response.data.overview,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while fetching the overview. Please try again.",
       };
     }
   },

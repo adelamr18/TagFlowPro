@@ -16,6 +16,7 @@ import { ADMIN_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
 
 const AdminNavbar = () => {
   const { logout, userName, roleId } = useAuth();
+
   const navigate = useNavigate();
 
   const handleLogout = () => {

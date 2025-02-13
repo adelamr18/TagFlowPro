@@ -1,4 +1,4 @@
-import Index from "views/Index.js";
+import Index from "views/Index";
 import Login from "views/Login";
 import AdminPanel from "views/AdminPanel";
 import ForgetPassword from "views/ForgetPassword";
