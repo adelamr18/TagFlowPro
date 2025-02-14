@@ -9,8 +9,6 @@ import {
   Row,
   Col,
   Input,
-  Button,
-  Table,
 } from "reactstrap";
 import Select from "react-select";
 import { ADMIN_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
@@ -19,15 +17,15 @@ import "./Header.css";
 import { OverviewDto } from "types/OverviewDto";
 
 interface HeaderProps {
+  onOverviewUpdate?: (overview: OverviewDto) => void;
   canShowDashboard?: boolean;
 }
 
-const Header = ({ canShowDashboard = true }: HeaderProps) => {
+const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
   const { userName, roleId, userId } = useAuth();
   const { projects, patientTypes } = useAdmin();
   const { getOverview } = useFile();
 
-  // Date range state
   const [fromDate, setFromDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
   );
@@ -35,7 +33,6 @@ const Header = ({ canShowDashboard = true }: HeaderProps) => {
     new Date().toISOString().slice(0, 10)
   );
 
-  // For project select, add an "All" option.
   const availableProjects = [
     { value: "all", label: "All" },
     ...([ADMIN_ROLE_ID, VIEWER_ROLE_ID].includes(parseInt(roleId || "0"))
@@ -51,16 +48,12 @@ const Header = ({ canShowDashboard = true }: HeaderProps) => {
           }))),
   ];
 
-  // For patient types, use "all" (or empty string) for no filtering.
   const [selectedProject, setSelectedProject] = useState<any>(
     availableProjects[0]
   );
   const [selectedPatientType, setSelectedPatientType] = useState<string>("all");
 
-  const [overview, setOverview] = useState<OverviewDto | null>(null);
-
   useEffect(() => {
-    // When "All" is selected, send an empty string.
     const projectParam =
       selectedProject &&
       selectedProject.value.toString().trim().toLowerCase() === "all"
@@ -70,16 +63,21 @@ const Header = ({ canShowDashboard = true }: HeaderProps) => {
       selectedPatientType.trim().toLowerCase() === "all"
         ? ""
         : selectedPatientType;
-
     if (fromDate && toDate) {
-      // Call getOverview with fromDate, toDate, projectParam, and patientParam
       getOverview(fromDate, toDate, projectParam, patientParam).then((data) => {
         if (data) {
-          setOverview(data);
+          onOverviewUpdate(data);
         }
       });
     }
-  }, [fromDate, toDate, selectedProject, selectedPatientType, getOverview]);
+  }, [
+    fromDate,
+    toDate,
+    selectedProject,
+    selectedPatientType,
+    getOverview,
+    onOverviewUpdate,
+  ]);
 
   return (
     <div className="header bg-gradient-info pb-8 pt-5 pt-md-8">
@@ -164,7 +162,6 @@ const Header = ({ canShowDashboard = true }: HeaderProps) => {
                 </div>
               </Col>
             </Row>
-            {/* Date Range Inputs */}
             <Row className="mb-4 text-white">
               <Col lg="6">
                 <label
@@ -195,94 +192,6 @@ const Header = ({ canShowDashboard = true }: HeaderProps) => {
                 />
               </Col>
             </Row>
-            <div className="header-body">
-              <Row>
-                <Col lg="6" xl="3">
-                  <Card className="card-stats mb-4 mb-xl-0">
-                    <CardBody>
-                      <Row>
-                        <div className="col">
-                          <CardTitle tag="h5" className="text-muted mb-0">
-                            Insured Patients
-                          </CardTitle>
-                          <span className="h2 font-weight-bold mb-0">
-                            {overview ? overview.insuredPatients : 0}
-                          </span>
-                        </div>
-                        <Col className="col-auto">
-                          <div className="icon icon-shape bg-success text-white rounded-circle shadow">
-                            <i className="fas fa-hand-holding-heart" />
-                          </div>
-                        </Col>
-                      </Row>
-                    </CardBody>
-                  </Card>
-                </Col>
-                <Col lg="6" xl="3">
-                  <Card className="card-stats mb-4 mb-xl-0">
-                    <CardBody>
-                      <Row>
-                        <div className="col">
-                          <CardTitle tag="h5" className="text-muted mb-0">
-                            Uninsured Patients
-                          </CardTitle>
-                          <span className="h2 font-weight-bold mb-0">
-                            {overview ? overview.nonInsuredPatients : 0}
-                          </span>
-                        </div>
-                        <Col className="col-auto">
-                          <div className="icon icon-shape bg-danger text-white rounded-circle shadow">
-                            <i className="fas fa-exclamation-circle" />
-                          </div>
-                        </Col>
-                      </Row>
-                    </CardBody>
-                  </Card>
-                </Col>
-                <Col lg="6" xl="3">
-                  <Card className="card-stats mb-4 mb-xl-0">
-                    <CardBody>
-                      <Row>
-                        <div className="col">
-                          <CardTitle tag="h5" className="text-muted mb-0">
-                            Saudi Patients
-                          </CardTitle>
-                          <span className="h2 font-weight-bold mb-0">
-                            {overview ? overview.saudiPatients : 0}
-                          </span>
-                        </div>
-                        <Col className="col-auto">
-                          <div className="icon icon-shape bg-primary text-white rounded-circle shadow">
-                            <i className="fas fa-flag" />
-                          </div>
-                        </Col>
-                      </Row>
-                    </CardBody>
-                  </Card>
-                </Col>
-                <Col lg="6" xl="3">
-                  <Card className="card-stats mb-4 mb-xl-0">
-                    <CardBody>
-                      <Row>
-                        <div className="col">
-                          <CardTitle tag="h5" className="text-muted mb-0">
-                            Non-Saudi Patients
-                          </CardTitle>
-                          <span className="h2 font-weight-bold mb-0">
-                            {overview ? overview.nonSaudiPatients : 0}
-                          </span>
-                        </div>
-                        <Col className="col-auto">
-                          <div className="icon icon-shape bg-info text-white rounded-circle shadow">
-                            <i className="fas fa-globe-americas" />
-                          </div>
-                        </Col>
-                      </Row>
-                    </CardBody>
-                  </Card>
-                </Col>
-              </Row>
-            </div>
           </>
         )}
       </Container>

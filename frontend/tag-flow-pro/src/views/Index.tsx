@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import classnames from "classnames";
 import Chart from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
@@ -14,6 +14,8 @@ import {
   Container,
   Row,
   Col,
+  Button,
+  Input,
 } from "reactstrap";
 import {
   chartOptions,
@@ -22,41 +24,78 @@ import {
   chartExample2,
 } from "variables/charts";
 import Header from "components/Headers/Header.tsx";
-
 import { useFile } from "context/FileContext";
+import { OverviewDto, ProjectPatientAnalyticsDto } from "types/OverviewDto";
+
 declare global {
   interface Window {
     Chart?: typeof Chart;
   }
 }
 
-const Index = (props) => {
+const Index: React.FC = () => {
+  const { getOverview } = useFile();
   const [activeNav, setActiveNav] = useState(1);
   const [chartExample1Data, setChartExample1Data] = useState("data1");
-  const { getOverview } = useFile();
-  const [totalPatientsChartData, setTotalPatientsChartData] = useState(null);
+  const [fromDate, setFromDate] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [toDate, setToDate] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [selectedProject, setSelectedProject] = useState<string>("all");
+  const [selectedPatientType, setSelectedPatientType] = useState<string>("all");
+  const [overview, setOverview] = useState<OverviewDto | null>(null);
+  const [projectsAnalytics, setProjectsAnalytics] = useState<
+    ProjectPatientAnalyticsDto[]
+  >([]);
 
   if (window.Chart) {
     parseOptions(window.Chart, chartOptions());
   }
 
-  const toggleNavs = (e, index) => {
+  const toggleNavs = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
     setActiveNav(index);
     setChartExample1Data("data" + index);
   };
 
+  useEffect(() => {
+    const projectParam =
+      selectedProject.trim().toLowerCase() === "all" ? "" : selectedProject;
+    const patientParam =
+      selectedPatientType.trim().toLowerCase() === "all"
+        ? ""
+        : selectedPatientType;
+    if (fromDate && toDate) {
+      getOverview(fromDate, toDate, projectParam, patientParam).then((data) => {
+        if (data) {
+          setOverview(data);
+          setProjectsAnalytics(data.projectsPerPatientAnalytics);
+        }
+      });
+    }
+  }, [fromDate, toDate, selectedProject, selectedPatientType, getOverview]);
+
   return (
     <>
-      <Header />
+      <Header
+        onOverviewUpdate={(data) => {
+          setOverview(data);
+          setProjectsAnalytics(data.projectsPerPatientAnalytics);
+        }}
+      />
       <Container className="mt--7" fluid>
-        <Row hidden={true}>
-          <Col className="mb-5 mb-xl-0">
+        <Row>
+          <Col className="mb-5 mb-xl-0" xl="8">
             <Card className="bg-gradient-default shadow">
               <CardHeader className="bg-transparent">
                 <Row className="align-items-center">
                   <div className="col">
-                    <h2 className="text-white mb-0">Total Patients</h2>
+                    <h6 className="text-uppercase text-light ls-1 mb-1">
+                      Overview
+                    </h6>
+                    <h2 className="text-white mb-0">Sales value</h2>
                   </div>
                   <div className="col">
                     <Nav className="justify-content-end" pills>
@@ -100,137 +139,66 @@ const Index = (props) => {
               </CardBody>
             </Card>
           </Col>
-        </Row>
-        <Row>
-          <Col className="mt-5">
+          <Col xl="4">
             <Card className="shadow">
               <CardHeader className="bg-transparent">
                 <Row className="align-items-center">
                   <div className="col">
-                    <h2 className="mb-0">Total Patients Per Project</h2>
+                    <h6 className="text-uppercase text-muted ls-1 mb-1">
+                      Performance
+                    </h6>
+                    <h2 className="mb-0">Total orders</h2>
                   </div>
                 </Row>
               </CardHeader>
               <CardBody>
                 <div className="chart">
-                  {totalPatientsChartData ? (
-                    <Bar
-                      data={totalPatientsChartData}
-                      options={chartExample2.options}
-                    />
-                  ) : (
-                    <Bar
-                      data={chartExample2.data}
-                      options={chartExample2.options}
-                    />
-                  )}
+                  <Bar
+                    data={chartExample2.data}
+                    options={chartExample2.options}
+                  />
                 </div>
               </CardBody>
             </Card>
           </Col>
         </Row>
-        <Row hidden={true} className="mt-5">
-          <Col>
-            <Card className="shadow">
-              <CardHeader className="border-0">
-                <Row className="align-items-center">
-                  <div className="col">
-                    <h3 className="mb-0">
-                      Total Patients Per Insurance Company
-                    </h3>
-                  </div>
-                </Row>
-              </CardHeader>
-              <Table className="align-items-center table-flush" responsive>
-                <thead className="thead-light">
-                  <tr>
-                    <th scope="col">Referral</th>
-                    <th scope="col">Visitors</th>
-                    <th scope="col" />
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">Facebook</th>
-                    <td>1,480</td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">60%</span>
-                        <div>
-                          <Progress
-                            max="100"
-                            value="60"
-                            barClassName="bg-gradient-danger"
-                          />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Facebook</th>
-                    <td>5,480</td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">70%</span>
-                        <div>
-                          <Progress
-                            max="100"
-                            value="70"
-                            barClassName="bg-gradient-success"
-                          />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Google</th>
-                    <td>4,807</td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">80%</span>
-                        <div>
-                          <Progress max="100" value="80" />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Instagram</th>
-                    <td>3,678</td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">75%</span>
-                        <div>
-                          <Progress
-                            max="100"
-                            value="75"
-                            barClassName="bg-gradient-info"
-                          />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Twitter</th>
-                    <td>2,645</td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">30%</span>
-                        <div>
-                          <Progress
-                            max="100"
-                            value="30"
-                            barClassName="bg-gradient-warning"
-                          />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </Table>
-            </Card>
-          </Col>
-        </Row>
+        {overview && (
+          <Row className="mt-5">
+            <Col className="mb-5 mb-xl-0" xl="8">
+              <Card className="shadow">
+                <CardHeader className="border-0">
+                  <Row className="align-items-center">
+                    <div className="col">
+                      <h3 className="mb-0">Projects Per Patient</h3>
+                    </div>
+                  </Row>
+                </CardHeader>
+                <Table className="align-items-center table-flush" responsive>
+                  <thead className="thead-light">
+                    <tr>
+                      <th>Project Name</th>
+                      <th>Total Patients</th>
+                      <th>Insured</th>
+                      <th>Non Insured</th>
+                      <th>% PatientsPerProject</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projectsAnalytics.map((p) => (
+                      <tr key={p.projectName}>
+                        <td>{p.projectName}</td>
+                        <td>{p.totalPatients}</td>
+                        <td>{p.insuredPatients}</td>
+                        <td>{p.nonInsuredPatients}</td>
+                        <td>{p.percentageOfPatientsPerProject}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </Card>
+            </Col>
+          </Row>
+        )}
       </Container>
     </>
   );

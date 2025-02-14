@@ -60,7 +60,6 @@ const fileService = {
       };
     }
   },
-
   getAllFiles: async (): Promise<ApiResponse<null>> => {
     try {
       const response = await axios.get(`${MAIN_URL}/get-all-files`);
@@ -78,7 +77,6 @@ const fileService = {
       };
     }
   },
-
   downloadFile: async (
     fileName: string,
     fileId: number
@@ -105,7 +103,6 @@ const fileService = {
       };
     }
   },
-
   deleteFile: async (fileId: number): Promise<ApiResponse<null>> => {
     try {
       const response = await axios.delete(`${MAIN_URL}/delete/${fileId}`);
@@ -119,8 +116,6 @@ const fileService = {
       };
     }
   },
-
-  // Updated getOverview now sends fromDate and toDate
   getOverview: async (
     fromDate: string,
     toDate: string,

@@ -45,7 +45,6 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
 
   useEffect(() => {
     signalRService.startConnection();
-
     const onFileStatusUpdate = async (
       fileId: number,
       downloadLink: string,
@@ -58,9 +57,7 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
         )
       );
     };
-
     signalRService.onFileStatusUpdated(onFileStatusUpdate);
-
     return () => {
       signalRService.stopConnection();
     };
@@ -120,7 +117,6 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
     }
   };
 
-  // Updated getOverview: Convert "all" selection to an empty string.
   const getOverview = async (
     fromDate: string,
     toDate: string,
@@ -154,7 +150,6 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
 
   useEffect(() => {
     getAllFiles();
-    // On initial load, fetch overview with no filters (send "all" so that getOverview converts them to empty strings)
     getOverview("", "", "all", "all");
   }, []);
 
@@ -174,6 +169,4 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
   );
 };
 
-export const useFile = (): FileContextType => {
-  return useContext(FileContext);
-};
+export const useFile = (): FileContextType => useContext(FileContext);
