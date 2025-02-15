@@ -21,7 +21,8 @@ interface FileContextType {
     fromDate: string,
     toDate: string,
     projectName: string,
-    patientType: string
+    patientType: string,
+    viewerId?: number
   ) => Promise<OverviewDto | null>;
   files: FileStatus[];
   setFiles: React.Dispatch<React.SetStateAction<FileStatus[]>>;
@@ -121,7 +122,8 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
     fromDate: string,
     toDate: string,
     projectName: string,
-    patientType: string
+    patientType: string,
+    viewerId?: number
   ): Promise<OverviewDto | null> => {
     const projectParam =
       projectName.trim().toLowerCase() === "all" ? "" : projectName;
@@ -132,7 +134,8 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
         fromDate,
         toDate,
         projectParam,
-        patientParam
+        patientParam,
+        viewerId
       );
       if (success && data) {
         return data;

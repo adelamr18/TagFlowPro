@@ -56,17 +56,12 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
   );
   const [selectedPatientType, setSelectedPatientType] = useState<string>("all");
 
-  const isAdminOrOperator = [ADMIN_ROLE_ID, OPERATOR_ROLE_ID].includes(
-    parseInt(roleId || "0")
-  );
-
   const fetchOverview = useCallback(() => {
-    const projectParam = isAdminOrOperator
-      ? selectedProject &&
-        selectedProject.value.toString().trim().toLowerCase() === "all"
+    const projectParam =
+      selectedProject &&
+      selectedProject.value.toString().trim().toLowerCase() === "all"
         ? ""
-        : selectedProject?.label || ""
-      : selectedProject?.label || "";
+        : selectedProject?.label || "";
     const patientParam =
       selectedPatientType.trim().toLowerCase() === "all"
         ? ""
@@ -86,7 +81,6 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
     selectedPatientType,
     getOverview,
     onOverviewUpdate,
-    isAdminOrOperator,
   ]);
 
   useEffect(() => {
@@ -100,7 +94,7 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
         {canShowDashboard && (
           <>
             {userName &&
-              [ADMIN_ROLE_ID, OPERATOR_ROLE_ID].includes(
+              [ADMIN_ROLE_ID, VIEWER_ROLE_ID, OPERATOR_ROLE_ID].includes(
                 parseInt(roleId || "0")
               ) && (
                 <Row className="mb-4 text-white">

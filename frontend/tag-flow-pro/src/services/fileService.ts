@@ -120,11 +120,12 @@ const fileService = {
     fromDate: string,
     toDate: string,
     projectName: string,
-    patientType: string
+    patientType: string,
+    viewerId?: number
   ): Promise<ApiResponse<OverviewDto>> => {
     try {
       const response = await axios.get(`${MAIN_URL}/overview`, {
-        params: { fromDate, toDate, projectName, patientType },
+        params: { fromDate, toDate, projectName, patientType, viewerId },
       });
       return {
         success: true,
