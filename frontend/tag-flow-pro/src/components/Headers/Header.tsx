@@ -34,7 +34,7 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
     new Date().toISOString().slice(0, 10)
   );
 
-  const availableProjects = [ADMIN_ROLE_ID, OPERATOR_ROLE_ID].includes(
+  const availableProjects = [ADMIN_ROLE_ID, VIEWER_ROLE_ID].includes(
     parseInt(roleId || "0")
   )
     ? [

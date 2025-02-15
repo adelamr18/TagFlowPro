@@ -24,7 +24,7 @@ import {
   InsuranceCompanyPatientAnalyticsDto,
 } from "types/OverviewDto";
 import { useAdmin } from "context/AdminContext";
-import { VIEWER_ROLE_ID } from "shared/consts";
+import { OPERATOR_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
 import { useAuth } from "context/AuthContext";
 
 declare global {
@@ -96,7 +96,7 @@ const Index: React.FC = () => {
         let filteredInsuranceAnalytics =
           data.insuranceCompaniesPertPatientAnalytics;
         // If the user is a viewer, filter projects to only those assigned to them.
-        if (parseInt(roleId || "0") === VIEWER_ROLE_ID) {
+        if (parseInt(roleId || "0") === OPERATOR_ROLE_ID) {
           const effectiveProjects = projects.filter((project) =>
             project.assignedUserIds.includes(userId)
           );

@@ -4,7 +4,7 @@ import Header from "components/Headers/Header";
 import FileStatusTable from "components/Tables/FileStatusTable";
 import { useFile } from "context/FileContext";
 import { useAuth } from "context/AuthContext";
-import { VIEWER_ROLE_ID } from "shared/consts";
+import { OPERATOR_ROLE_ID } from "shared/consts";
 
 const FileStatus: React.FC = () => {
   const { files, deleteFile } = useFile();
@@ -15,7 +15,7 @@ const FileStatus: React.FC = () => {
 
   const filteredFiles = useMemo(() => {
     let filtered = files;
-    if (parseInt(roleId, 10) === VIEWER_ROLE_ID) {
+    if (parseInt(roleId, 10) === OPERATOR_ROLE_ID) {
       filtered = filtered.filter((file) => file.userId === userId);
     }
     if (!searchQuery.trim()) {
