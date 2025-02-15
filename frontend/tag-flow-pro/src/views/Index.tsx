@@ -83,7 +83,7 @@ const Index: React.FC = () => {
       />
       <Container className="mt--7" fluid>
         <Row>
-          <Col className="mb-5 mb-xl-0" xl="8">
+          <Col className="mb-5 mb-xl-0">
             <Card className="bg-gradient-default shadow">
               <CardHeader className="bg-transparent">
                 <Row className="align-items-center">
@@ -135,7 +135,7 @@ const Index: React.FC = () => {
               </CardBody>
             </Card>
           </Col>
-          <Col xl="4">
+          {/* <Col xl="4">
             <Card className="shadow">
               <CardHeader className="bg-transparent">
                 <Row className="align-items-center">
@@ -156,11 +156,11 @@ const Index: React.FC = () => {
                 </div>
               </CardBody>
             </Card>
-          </Col>
+          </Col> */}
         </Row>
         {overview && (
           <Row className="mt-5">
-            <Col className="mb-5 mb-xl-0" xl="8">
+            <Col className="mb-5 mb-xl-0">
               <ProjectsPerPatientTable
                 projectsAnalytics={projectsAnalytics}
                 currentPage={currentPage}
