@@ -34,9 +34,13 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
     new Date().toISOString().slice(0, 10)
   );
 
-  const availableProjects = [ADMIN_ROLE_ID, OPERATOR_ROLE_ID].includes(
+  // Determine if current user is admin or operator.
+  const isAdminOrOperator = [ADMIN_ROLE_ID, OPERATOR_ROLE_ID].includes(
     parseInt(roleId || "0")
-  )
+  );
+
+  // Build availableProjects: if admin or operator, include an "All" option; otherwise, filter projects.
+  const availableProjects = isAdminOrOperator
     ? [
         { value: "all", label: "All" },
         ...projects.map((project) => ({
@@ -55,10 +59,6 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
     availableProjects[0]
   );
   const [selectedPatientType, setSelectedPatientType] = useState<string>("all");
-
-  const isAdminOrOperator = [ADMIN_ROLE_ID, OPERATOR_ROLE_ID].includes(
-    parseInt(roleId || "0")
-  );
 
   const fetchOverview = useCallback(() => {
     const projectParam = isAdminOrOperator
@@ -100,7 +100,8 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
         {canShowDashboard && (
           <>
             {userName &&
-              [ADMIN_ROLE_ID, VIEWER_ROLE_ID].includes(
+              // Modified condition: show the "Select Project Name" row for Admins and Operators.
+              [ADMIN_ROLE_ID, OPERATOR_ROLE_ID].includes(
                 parseInt(roleId || "0")
               ) && (
                 <Row className="mb-4 text-white">
