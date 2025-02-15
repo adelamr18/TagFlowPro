@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "reactstrap";
 import Select from "react-select";
-import { ADMIN_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
+import { ADMIN_ROLE_ID, OPERATOR_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
 import { useState, useEffect, useCallback } from "react";
 import "./Header.css";
 import { OverviewDto } from "types/OverviewDto";
@@ -34,32 +34,39 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
     new Date().toISOString().slice(0, 10)
   );
 
-  const availableProjects = [
-    { value: "all", label: "All" },
-    ...([ADMIN_ROLE_ID, VIEWER_ROLE_ID].includes(parseInt(roleId || "0"))
-      ? projects.map((project) => ({
+  const availableProjects = [ADMIN_ROLE_ID, OPERATOR_ROLE_ID].includes(
+    parseInt(roleId || "0")
+  )
+    ? [
+        { value: "all", label: "All" },
+        ...projects.map((project) => ({
           value: project.projectId,
           label: project.projectName,
-        }))
-      : projects
-          .filter((project) => project.assignedUserIds.includes(userId))
-          .map((project) => ({
-            value: project.projectId,
-            label: project.projectName,
-          }))),
-  ];
+        })),
+      ]
+    : projects
+        .filter((project) => project.assignedUserIds.includes(userId))
+        .map((project) => ({
+          value: project.projectId,
+          label: project.projectName,
+        }));
 
   const [selectedProject, setSelectedProject] = useState<any>(
     availableProjects[0]
   );
   const [selectedPatientType, setSelectedPatientType] = useState<string>("all");
 
+  const isAdminOrOperator = [ADMIN_ROLE_ID, OPERATOR_ROLE_ID].includes(
+    parseInt(roleId || "0")
+  );
+
   const fetchOverview = useCallback(() => {
-    const projectParam =
-      selectedProject &&
-      selectedProject.value.toString().trim().toLowerCase() === "all"
+    const projectParam = isAdminOrOperator
+      ? selectedProject &&
+        selectedProject.value.toString().trim().toLowerCase() === "all"
         ? ""
-        : selectedProject?.label || "";
+        : selectedProject?.label || ""
+      : selectedProject?.label || "";
     const patientParam =
       selectedPatientType.trim().toLowerCase() === "all"
         ? ""
@@ -79,6 +86,7 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
     selectedPatientType,
     getOverview,
     onOverviewUpdate,
+    isAdminOrOperator,
   ]);
 
   useEffect(() => {

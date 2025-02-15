@@ -14,7 +14,10 @@ const InsuranceCompaniesManagement: React.FC<
   const columns = [
     { header: "Insurance Company", accessor: "insuranceCompany" },
     { header: "Insured Patients", accessor: "insuredPatients" },
-    { header: "% Patients", accessor: "percentageOfPatients" },
+    {
+      header: "%PatientsPerInsuranceCompany",
+      accessor: "percentageOfPatients",
+    },
   ];
 
   return (

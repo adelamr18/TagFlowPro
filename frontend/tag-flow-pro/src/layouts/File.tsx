@@ -32,7 +32,9 @@ const File = (props: AdminProps) => {
     if (parsedRoleId === OPERATOR_ROLE_ID) {
       return routes.filter((route) => route.name !== "Admin Panel");
     } else if (parsedRoleId === VIEWER_ROLE_ID) {
-      return [];
+      return routes.filter(
+        (route) => route.name !== "File Upload" && route.name !== "Admin Panel"
+      );
     }
     return routes;
   };

@@ -23,6 +23,9 @@ import {
   ProjectPatientAnalyticsDto,
   InsuranceCompanyPatientAnalyticsDto,
 } from "types/OverviewDto";
+import { useAdmin } from "context/AdminContext";
+import { VIEWER_ROLE_ID } from "shared/consts";
+import { useAuth } from "context/AuthContext";
 
 declare global {
   interface Window {
@@ -32,6 +35,9 @@ declare global {
 
 const Index: React.FC = () => {
   const { getOverview } = useFile();
+  const { projects } = useAdmin();
+  const { roleId, userId } = useAuth();
+
   const [activeNav, setActiveNav] = useState<number>(1);
   const [chartExample1Data, setChartExample1Data] = useState<string>("data1");
   const [overview, setOverview] = useState<OverviewDto | null>(null);
@@ -82,17 +88,34 @@ const Index: React.FC = () => {
   const today = new Date().toISOString().slice(0, 10);
 
   // Fetch overview and set both analytics arrays
+
   useEffect(() => {
     getOverview(today, today, "", "").then((data) => {
       if (data) {
+        let filteredProjectsAnalytics = data.projectsPerPatientAnalytics;
+        let filteredInsuranceAnalytics =
+          data.insuranceCompaniesPertPatientAnalytics;
+        // If the user is a viewer, filter projects to only those assigned to them.
+        if (parseInt(roleId || "0") === VIEWER_ROLE_ID) {
+          const effectiveProjects = projects.filter((project) =>
+            project.assignedUserIds.includes(userId)
+          );
+          filteredProjectsAnalytics = data.projectsPerPatientAnalytics.filter(
+            (item) =>
+              effectiveProjects.some(
+                (project) => project.projectName === item.projectName
+              )
+          );
+          // If desired, you could also filter the insurance analytics similarly.
+        }
         setOverview(data);
-        setProjectsAnalytics(data.projectsPerPatientAnalytics);
-        setInsuranceAnalytics(data.insuranceCompaniesPertPatientAnalytics);
+        setProjectsAnalytics(filteredProjectsAnalytics);
+        setInsuranceAnalytics(filteredInsuranceAnalytics);
         setCurrentProjectPage(1);
         setCurrentInsurancePage(1);
       }
     });
-  }, [getOverview, today]);
+  }, [getOverview, today, roleId, userId, projects]);
 
   const paginateProjects = (pageNumber: number) => {
     setCurrentProjectPage(pageNumber);
