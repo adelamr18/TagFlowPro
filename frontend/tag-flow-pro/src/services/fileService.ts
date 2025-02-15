@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_URL } from "shared/consts";
 import { ApiResponse } from "types/ApiResponse";
+import { OverviewDto } from "types/OverviewDto";
 import { UploadFileDetails } from "types/UploadFileDetails";
 
 const MAIN_URL = `${API_URL}/file`;
@@ -59,7 +60,6 @@ const fileService = {
       };
     }
   },
-
   getAllFiles: async (): Promise<ApiResponse<null>> => {
     try {
       const response = await axios.get(`${MAIN_URL}/get-all-files`);
@@ -77,7 +77,6 @@ const fileService = {
       };
     }
   },
-
   downloadFile: async (
     fileName: string,
     fileId: number
@@ -86,19 +85,16 @@ const fileService = {
       const downloadUrl = `${MAIN_URL}/download?fileName=${encodeURIComponent(
         fileName
       )}&fileId=${fileId}`;
-
       const response = await axios.get(downloadUrl, { responseType: "blob" });
       const blob = new Blob([response.data], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
       const link = document.createElement("a");
-
       link.href = URL.createObjectURL(blob);
       link.download = fileName;
       link.click();
-
       return { success: true, message: "File downloaded successfully!" };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message:
@@ -107,17 +103,40 @@ const fileService = {
       };
     }
   },
-
   deleteFile: async (fileId: number): Promise<ApiResponse<null>> => {
     try {
       const response = await axios.delete(`${MAIN_URL}/delete/${fileId}`);
       return { success: true, message: response.data.message };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message:
           error.response?.data?.message ||
           "An error occurred while deleting the file.",
+      };
+    }
+  },
+  getOverview: async (
+    fromDate: string,
+    toDate: string,
+    projectName: string,
+    patientType: string
+  ): Promise<ApiResponse<OverviewDto>> => {
+    try {
+      const response = await axios.get(`${MAIN_URL}/overview`, {
+        params: { fromDate, toDate, projectName, patientType },
+      });
+      return {
+        success: true,
+        data: response.data.overview,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while fetching the overview. Please try again.",
       };
     }
   },
