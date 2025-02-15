@@ -83,7 +83,6 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
 
   useEffect(() => {
     fetchOverview();
-    // We intentionally leave out onOverviewUpdate from dependencies to avoid an infinite loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromDate, toDate, selectedProject, selectedPatientType]);
 
@@ -215,10 +214,12 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
                           </span>
                         </div>
                         <Col className="col-auto">
-                          <i
-                            className="fas fa-user-shield text-white"
-                            style={{ fontSize: "2rem" }}
-                          ></i>
+                          <div className="icon icon-shape bg-danger text-white rounded-circle shadow">
+                            <i
+                              className="fas fa-user-shield"
+                              style={{ fontSize: "1.5rem" }}
+                            ></i>
+                          </div>
                         </Col>
                       </Row>
                     </CardBody>
@@ -237,10 +238,12 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
                           </span>
                         </div>
                         <Col className="col-auto">
-                          <i
-                            className="fas fa-user-times text-white"
-                            style={{ fontSize: "2rem" }}
-                          ></i>
+                          <div className="icon icon-shape bg-warning text-white rounded-circle shadow">
+                            <i
+                              className="fas fa-user-times"
+                              style={{ fontSize: "1.5rem" }}
+                            ></i>
+                          </div>
                         </Col>
                       </Row>
                     </CardBody>
@@ -259,10 +262,12 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
                           </span>
                         </div>
                         <Col className="col-auto">
-                          <i
-                            className="fas fa-flag text-white"
-                            style={{ fontSize: "2rem" }}
-                          ></i>
+                          <div className="icon icon-shape bg-primary text-white rounded-circle shadow">
+                            <i
+                              className="fas fa-flag"
+                              style={{ fontSize: "1.5rem" }}
+                            ></i>
+                          </div>
                         </Col>
                       </Row>
                     </CardBody>
@@ -281,10 +286,12 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
                           </span>
                         </div>
                         <Col className="col-auto">
-                          <i
-                            className="fas fa-globe text-white"
-                            style={{ fontSize: "2rem" }}
-                          ></i>
+                          <div className="icon icon-shape bg-info text-white rounded-circle shadow">
+                            <i
+                              className="fas fa-globe"
+                              style={{ fontSize: "1.5rem" }}
+                            ></i>
+                          </div>
                         </Col>
                       </Row>
                     </CardBody>
