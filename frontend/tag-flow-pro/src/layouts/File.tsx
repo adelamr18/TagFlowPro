@@ -30,9 +30,7 @@ const File = (props: AdminProps) => {
 
   const filterRoutesByRole = (routes: AppRoute[]) => {
     if (parsedRoleId === OPERATOR_ROLE_ID) {
-      return routes.filter(
-        (route) => route.name !== "Admin Panel" && route.name !== "Dashboard"
-      );
+      return routes.filter((route) => route.name !== "Admin Panel");
     } else if (parsedRoleId === VIEWER_ROLE_ID) {
       return [];
     }
@@ -40,13 +38,6 @@ const File = (props: AdminProps) => {
   };
 
   const filteredRoutes = filterRoutesByRole(routes);
-
-  if (
-    parsedRoleId === OPERATOR_ROLE_ID &&
-    location.pathname === "/admin/index"
-  ) {
-    return <Navigate to="/admin/file-upload" replace />;
-  }
 
   const getRoutes = (routes: AppRoute[]) => {
     return routes.map((prop) => {

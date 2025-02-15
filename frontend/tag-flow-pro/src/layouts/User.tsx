@@ -39,13 +39,6 @@ const User = (props: AdminProps) => {
 
   const filteredRoutes = filterRoutesByRole(routes);
 
-  if (
-    parsedRoleId === OPERATOR_ROLE_ID &&
-    location.pathname === "/admin/index"
-  ) {
-    return <Navigate to="/admin/file-upload" replace />;
-  }
-
   const getRoutes = (routes: AppRoute[]) => {
     return routes.map((prop) => {
       if (prop.layout === "/user") {
