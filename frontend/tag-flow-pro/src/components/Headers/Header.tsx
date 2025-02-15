@@ -66,11 +66,9 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
         : selectedPatientType;
     if (fromDate && toDate) {
       getOverview(fromDate, toDate, projectParam, patientParam).then((data) => {
-        if (data) {
+        if (data && onOverviewUpdate) {
           setOverview(data);
-          if (onOverviewUpdate) {
-            onOverviewUpdate(data);
-          }
+          onOverviewUpdate(data);
         }
       });
     }
@@ -83,10 +81,10 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
     onOverviewUpdate,
   ]);
 
-  // Trigger fetchOverview immediately when any filter changes
   useEffect(() => {
     fetchOverview();
-  }, [fromDate, toDate, selectedProject, selectedPatientType, fetchOverview]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromDate, toDate, selectedProject, selectedPatientType]);
 
   return (
     <div className="header bg-gradient-info pb-8 pt-5 pt-md-8">
