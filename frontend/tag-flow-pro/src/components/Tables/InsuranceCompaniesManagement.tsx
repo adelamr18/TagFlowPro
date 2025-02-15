@@ -17,6 +17,8 @@ const InsuranceCompaniesManagement: React.FC<
     {
       header: "%PatientsPerInsuranceCompany",
       accessor: "percentageOfPatients",
+      render: (row: InsuranceCompanyPatientAnalyticsDto) =>
+        `${row.percentageOfPatients}%`,
     },
   ];
 
