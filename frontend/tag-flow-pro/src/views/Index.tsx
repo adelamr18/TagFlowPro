@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import classnames from "classnames";
 import Chart from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import {
   Card,
   CardHeader,
@@ -13,16 +13,16 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import {
-  chartOptions,
-  parseOptions,
-  chartExample1,
-  chartExample2,
-} from "variables/charts";
+import { chartOptions, parseOptions, chartExample1 } from "variables/charts";
 import Header from "components/Headers/Header.tsx";
 import ProjectsPerPatientTable from "components/Tables/ProjectsPerPatientTable";
+import InsuranceCompaniesManagement from "components/Tables/InsuranceCompaniesManagement";
 import { useFile } from "context/FileContext";
-import { OverviewDto, ProjectPatientAnalyticsDto } from "types/OverviewDto";
+import {
+  OverviewDto,
+  ProjectPatientAnalyticsDto,
+  InsuranceCompanyPatientAnalyticsDto,
+} from "types/OverviewDto";
 
 declare global {
   interface Window {
@@ -38,9 +38,35 @@ const Index: React.FC = () => {
   const [projectsAnalytics, setProjectsAnalytics] = useState<
     ProjectPatientAnalyticsDto[]
   >([]);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const rowsPerPage = 5;
-  const today = new Date().toISOString().slice(0, 10);
+  const [insuranceAnalytics, setInsuranceAnalytics] = useState<
+    InsuranceCompanyPatientAnalyticsDto[]
+  >([]);
+
+  // Pagination for Projects Per Patient
+  const [currentProjectPage, setCurrentProjectPage] = useState<number>(1);
+  const projectsRowsPerPage = 5;
+  const indexOfLastProject = currentProjectPage * projectsRowsPerPage;
+  const indexOfFirstProject = indexOfLastProject - projectsRowsPerPage;
+  const currentProjects = projectsAnalytics.slice(
+    indexOfFirstProject,
+    indexOfLastProject
+  );
+  const totalProjectPages = Math.ceil(
+    projectsAnalytics.length / projectsRowsPerPage
+  );
+
+  // Pagination for Insurance Companies
+  const [currentInsurancePage, setCurrentInsurancePage] = useState<number>(1);
+  const insuranceRowsPerPage = 5;
+  const indexOfLastInsurance = currentInsurancePage * insuranceRowsPerPage;
+  const indexOfFirstInsurance = indexOfLastInsurance - insuranceRowsPerPage;
+  const currentInsurance = insuranceAnalytics.slice(
+    indexOfFirstInsurance,
+    indexOfLastInsurance
+  );
+  const totalInsurancePages = Math.ceil(
+    insuranceAnalytics.length / insuranceRowsPerPage
+  );
 
   if (window.Chart) {
     parseOptions(window.Chart, chartOptions());
@@ -52,24 +78,29 @@ const Index: React.FC = () => {
     setChartExample1Data("data" + index);
   };
 
-  // --- Pagination logic ---
-  const totalPages = Math.ceil((projectsAnalytics?.length || 0) / rowsPerPage);
-  const paginate = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
+  // For demonstration we use today's date for both fromDate and toDate.
+  const today = new Date().toISOString().slice(0, 10);
 
-  // Fetch overview when filters change (for simplicity, using fixed dates here)
+  // Fetch overview and set both analytics arrays
   useEffect(() => {
-    // For demonstration, we use today for both fromDate and toDate.
-    // In a real scenario, these could come from header filters.
     getOverview(today, today, "", "").then((data) => {
       if (data) {
         setOverview(data);
         setProjectsAnalytics(data.projectsPerPatientAnalytics);
-        setCurrentPage(1);
+        setInsuranceAnalytics(data.insuranceCompaniesPertPatientAnalytics);
+        setCurrentProjectPage(1);
+        setCurrentInsurancePage(1);
       }
     });
   }, [getOverview, today]);
+
+  const paginateProjects = (pageNumber: number) => {
+    setCurrentProjectPage(pageNumber);
+  };
+
+  const paginateInsurance = (pageNumber: number) => {
+    setCurrentInsurancePage(pageNumber);
+  };
 
   return (
     <>
@@ -77,7 +108,9 @@ const Index: React.FC = () => {
         onOverviewUpdate={(data: OverviewDto) => {
           setOverview(data);
           setProjectsAnalytics(data.projectsPerPatientAnalytics);
-          setCurrentPage(1);
+          setInsuranceAnalytics(data.insuranceCompaniesPertPatientAnalytics);
+          setCurrentProjectPage(1);
+          setCurrentInsurancePage(1);
         }}
         canShowDashboard={true}
       />
@@ -135,7 +168,7 @@ const Index: React.FC = () => {
               </CardBody>
             </Card>
           </Col>
-          {/* <Col xl="4">
+          {/* <Col lg="4">
             <Card className="shadow">
               <CardHeader className="bg-transparent">
                 <Row className="align-items-center">
@@ -159,16 +192,28 @@ const Index: React.FC = () => {
           </Col> */}
         </Row>
         {overview && (
-          <Row className="mt-5">
-            <Col className="mb-5 mb-xl-0">
-              <ProjectsPerPatientTable
-                projectsAnalytics={projectsAnalytics}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={paginate}
-              />
-            </Col>
-          </Row>
+          <>
+            <Row className="mt-5">
+              <Col className="mb-5 mb-xl-0">
+                <ProjectsPerPatientTable
+                  projectsAnalytics={currentProjects}
+                  currentPage={currentProjectPage}
+                  totalPages={totalProjectPages}
+                  onPageChange={paginateProjects}
+                />
+              </Col>
+            </Row>
+            <Row className="mt-5">
+              <Col className="mb-5 mb-xl-0">
+                <InsuranceCompaniesManagement
+                  insuranceAnalytics={currentInsurance}
+                  currentPage={currentInsurancePage}
+                  totalPages={totalInsurancePages}
+                  onPageChange={paginateInsurance}
+                />
+              </Col>
+            </Row>
+          </>
         )}
       </Container>
     </>

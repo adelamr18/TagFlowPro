@@ -18,4 +18,11 @@ export interface OverviewDto {
   nonSaudiPatients: number;
   patientAnalytics: AnalyticsDataPoint[];
   projectsPerPatientAnalytics: ProjectPatientAnalyticsDto[];
+  insuranceCompaniesPertPatientAnalytics: InsuranceCompanyPatientAnalyticsDto[];
+}
+
+export interface InsuranceCompanyPatientAnalyticsDto {
+  insuranceCompany: string;
+  insuredPatients: number;
+  percentageOfPatients: number;
 }
