@@ -30,9 +30,7 @@ const User = (props: AdminProps) => {
 
   const filterRoutesByRole = (routes: AppRoute[]) => {
     if (parsedRoleId === OPERATOR_ROLE_ID) {
-      return routes.filter(
-        (route) => route.name !== "Admin Panel" && route.name !== "Dashboard"
-      );
+      return routes.filter((route) => route.name !== "Admin Panel");
     } else if (parsedRoleId === VIEWER_ROLE_ID) {
       return [];
     }
