@@ -9,13 +9,9 @@ import {
   NavItem,
   NavLink,
   Nav,
-  Progress,
-  Table,
   Container,
   Row,
   Col,
-  Button,
-  Input,
 } from "reactstrap";
 import {
   chartOptions,
@@ -24,6 +20,7 @@ import {
   chartExample2,
 } from "variables/charts";
 import Header from "components/Headers/Header.tsx";
+import ProjectsPerPatientTable from "components/Tables/ProjectsPerPatientTable";
 import { useFile } from "context/FileContext";
 import { OverviewDto, ProjectPatientAnalyticsDto } from "types/OverviewDto";
 
@@ -35,20 +32,15 @@ declare global {
 
 const Index: React.FC = () => {
   const { getOverview } = useFile();
-  const [activeNav, setActiveNav] = useState(1);
-  const [chartExample1Data, setChartExample1Data] = useState("data1");
-  const [fromDate, setFromDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
-  );
-  const [toDate, setToDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
-  );
-  const [selectedProject, setSelectedProject] = useState<string>("all");
-  const [selectedPatientType, setSelectedPatientType] = useState<string>("all");
+  const [activeNav, setActiveNav] = useState<number>(1);
+  const [chartExample1Data, setChartExample1Data] = useState<string>("data1");
   const [overview, setOverview] = useState<OverviewDto | null>(null);
   const [projectsAnalytics, setProjectsAnalytics] = useState<
     ProjectPatientAnalyticsDto[]
   >([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const rowsPerPage = 5;
+  const today = new Date().toISOString().slice(0, 10);
 
   if (window.Chart) {
     parseOptions(window.Chart, chartOptions());
@@ -60,30 +52,34 @@ const Index: React.FC = () => {
     setChartExample1Data("data" + index);
   };
 
+  // --- Pagination logic ---
+  const totalPages = Math.ceil((projectsAnalytics?.length || 0) / rowsPerPage);
+  const paginate = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Fetch overview when filters change (for simplicity, using fixed dates here)
   useEffect(() => {
-    const projectParam =
-      selectedProject.trim().toLowerCase() === "all" ? "" : selectedProject;
-    const patientParam =
-      selectedPatientType.trim().toLowerCase() === "all"
-        ? ""
-        : selectedPatientType;
-    if (fromDate && toDate) {
-      getOverview(fromDate, toDate, projectParam, patientParam).then((data) => {
-        if (data) {
-          setOverview(data);
-          setProjectsAnalytics(data.projectsPerPatientAnalytics);
-        }
-      });
-    }
-  }, [fromDate, toDate, selectedProject, selectedPatientType, getOverview]);
+    // For demonstration, we use today for both fromDate and toDate.
+    // In a real scenario, these could come from header filters.
+    getOverview(today, today, "", "").then((data) => {
+      if (data) {
+        setOverview(data);
+        setProjectsAnalytics(data.projectsPerPatientAnalytics);
+        setCurrentPage(1);
+      }
+    });
+  }, [getOverview, today]);
 
   return (
     <>
       <Header
-        onOverviewUpdate={(data) => {
+        onOverviewUpdate={(data: OverviewDto) => {
           setOverview(data);
           setProjectsAnalytics(data.projectsPerPatientAnalytics);
+          setCurrentPage(1);
         }}
+        canShowDashboard={true}
       />
       <Container className="mt--7" fluid>
         <Row>
@@ -165,37 +161,12 @@ const Index: React.FC = () => {
         {overview && (
           <Row className="mt-5">
             <Col className="mb-5 mb-xl-0" xl="8">
-              <Card className="shadow">
-                <CardHeader className="border-0">
-                  <Row className="align-items-center">
-                    <div className="col">
-                      <h3 className="mb-0">Projects Per Patient</h3>
-                    </div>
-                  </Row>
-                </CardHeader>
-                <Table className="align-items-center table-flush" responsive>
-                  <thead className="thead-light">
-                    <tr>
-                      <th>Project Name</th>
-                      <th>Total Patients</th>
-                      <th>Insured</th>
-                      <th>Non Insured</th>
-                      <th>% PatientsPerProject</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {projectsAnalytics.map((p) => (
-                      <tr key={p.projectName}>
-                        <td>{p.projectName}</td>
-                        <td>{p.totalPatients}</td>
-                        <td>{p.insuredPatients}</td>
-                        <td>{p.nonInsuredPatients}</td>
-                        <td>{p.percentageOfPatientsPerProject}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </Card>
+              <ProjectsPerPatientTable
+                projectsAnalytics={projectsAnalytics}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={paginate}
+              />
             </Col>
           </Row>
         )}

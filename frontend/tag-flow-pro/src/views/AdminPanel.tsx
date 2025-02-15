@@ -389,7 +389,7 @@ const AdminPanel = () => {
 
   return (
     <>
-      <Header canShowDashboard={true} />
+      <Header canShowDashboard={false} />
       <Container className="mt--7" fluid>
         <Row>
           <div className="col">

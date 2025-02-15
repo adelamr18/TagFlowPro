@@ -4,15 +4,15 @@ import { useFile } from "context/FileContext";
 import {
   Card,
   CardBody,
-  CardTitle,
   Container,
   Row,
   Col,
   Input,
+  CardTitle,
 } from "reactstrap";
 import Select from "react-select";
 import { ADMIN_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "./Header.css";
 import { OverviewDto } from "types/OverviewDto";
 
@@ -25,6 +25,7 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
   const { userName, roleId, userId } = useAuth();
   const { projects, patientTypes } = useAdmin();
   const { getOverview } = useFile();
+  const [overview, setOverview] = useState<OverviewDto | null>(null);
 
   const [fromDate, setFromDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
@@ -53,7 +54,7 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
   );
   const [selectedPatientType, setSelectedPatientType] = useState<string>("all");
 
-  useEffect(() => {
+  const fetchOverview = useCallback(() => {
     const projectParam =
       selectedProject &&
       selectedProject.value.toString().trim().toLowerCase() === "all"
@@ -65,7 +66,8 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
         : selectedPatientType;
     if (fromDate && toDate) {
       getOverview(fromDate, toDate, projectParam, patientParam).then((data) => {
-        if (data) {
+        if (data && onOverviewUpdate) {
+          setOverview(data);
           onOverviewUpdate(data);
         }
       });
@@ -78,6 +80,12 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
     getOverview,
     onOverviewUpdate,
   ]);
+
+  useEffect(() => {
+    fetchOverview();
+    // We intentionally leave out onOverviewUpdate from dependencies to avoid an infinite loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromDate, toDate, selectedProject, selectedPatientType]);
 
   return (
     <div className="header bg-gradient-info pb-8 pt-5 pt-md-8">
@@ -192,6 +200,98 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
                 />
               </Col>
             </Row>
+            <div className="header-body">
+              <Row>
+                <Col lg="6" xl="3">
+                  <Card className="card-stats mb-4 mb-xl-0">
+                    <CardBody>
+                      <Row>
+                        <div className="col">
+                          <CardTitle tag="h5" className="text-muted mb-0">
+                            Insured Patients
+                          </CardTitle>
+                          <span className="h2 font-weight-bold mb-0">
+                            {overview?.insuredPatients ?? "0"}
+                          </span>
+                        </div>
+                        <Col className="col-auto">
+                          <i
+                            className="fas fa-user-shield text-white"
+                            style={{ fontSize: "2rem" }}
+                          ></i>
+                        </Col>
+                      </Row>
+                    </CardBody>
+                  </Card>
+                </Col>
+                <Col lg="6" xl="3">
+                  <Card className="card-stats mb-4 mb-xl-0">
+                    <CardBody>
+                      <Row>
+                        <div className="col">
+                          <CardTitle tag="h5" className="text-muted mb-0">
+                            Uninsured Patients
+                          </CardTitle>
+                          <span className="h2 font-weight-bold mb-0">
+                            {overview?.nonInsuredPatients ?? "0"}
+                          </span>
+                        </div>
+                        <Col className="col-auto">
+                          <i
+                            className="fas fa-user-times text-white"
+                            style={{ fontSize: "2rem" }}
+                          ></i>
+                        </Col>
+                      </Row>
+                    </CardBody>
+                  </Card>
+                </Col>
+                <Col lg="6" xl="3">
+                  <Card className="card-stats mb-4 mb-xl-0">
+                    <CardBody>
+                      <Row>
+                        <div className="col">
+                          <CardTitle tag="h5" className="text-muted mb-0">
+                            Saudi Patients
+                          </CardTitle>
+                          <span className="h2 font-weight-bold mb-0">
+                            {overview?.saudiPatients ?? "0"}
+                          </span>
+                        </div>
+                        <Col className="col-auto">
+                          <i
+                            className="fas fa-flag text-white"
+                            style={{ fontSize: "2rem" }}
+                          ></i>
+                        </Col>
+                      </Row>
+                    </CardBody>
+                  </Card>
+                </Col>
+                <Col lg="6" xl="3">
+                  <Card className="card-stats mb-4 mb-xl-0">
+                    <CardBody>
+                      <Row>
+                        <div className="col">
+                          <CardTitle tag="h5" className="text-muted mb-0">
+                            Non-Saudi Patients
+                          </CardTitle>
+                          <span className="h2 font-weight-bold mb-0">
+                            {overview?.nonSaudiPatients ?? "0"}
+                          </span>
+                        </div>
+                        <Col className="col-auto">
+                          <i
+                            className="fas fa-globe text-white"
+                            style={{ fontSize: "2rem" }}
+                          ></i>
+                        </Col>
+                      </Row>
+                    </CardBody>
+                  </Card>
+                </Col>
+              </Row>
+            </div>
           </>
         )}
       </Container>
