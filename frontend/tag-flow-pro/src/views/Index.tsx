@@ -24,8 +24,10 @@ import {
   InsuranceCompanyPatientAnalyticsDto,
 } from "types/OverviewDto";
 import { useAdmin } from "context/AdminContext";
-import { OPERATOR_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
+import { OPERATOR_ROLE_ID } from "shared/consts";
 import { useAuth } from "context/AuthContext";
+import ProjectsPerPatientPieChart from "components/PieCharts/ProjectsPerPatientPieChart";
+import SimpleBarChartExample from "components/PieCharts/InsuranceCompaniesBarChart";
 
 declare global {
   interface Window {
@@ -217,7 +219,7 @@ const Index: React.FC = () => {
         {overview && (
           <>
             <Row className="mt-5">
-              <Col className="mb-5 mb-xl-0">
+              <Col lg="6" className="mb-5 mb-xl-0">
                 <ProjectsPerPatientTable
                   projectsAnalytics={currentProjects}
                   currentPage={currentProjectPage}
@@ -225,15 +227,23 @@ const Index: React.FC = () => {
                   onPageChange={paginateProjects}
                 />
               </Col>
+              <Col lg="6" className="mb-5 mb-xl-0">
+                <ProjectsPerPatientPieChart
+                  projectsAnalytics={currentProjects}
+                />
+              </Col>
             </Row>
             <Row className="mt-5">
-              <Col className="mb-5 mb-xl-0">
+              <Col lg="6" className="mb-5 mb-xl-0">
                 <InsuranceCompaniesManagement
                   insuranceAnalytics={currentInsurance}
                   currentPage={currentInsurancePage}
                   totalPages={totalInsurancePages}
                   onPageChange={paginateInsurance}
                 />
+              </Col>
+              <Col lg="6" className="mb-5 mb-xl-0">
+                <SimpleBarChartExample insuranceAnalytics={currentInsurance} />
               </Col>
             </Row>
           </>
