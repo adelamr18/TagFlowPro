@@ -219,7 +219,7 @@ const Index: React.FC = () => {
         {overview && (
           <>
             <Row className="mt-5">
-              <Col lg="6" className="mb-5 mb-xl-0">
+              <Col className="mb-5 mb-xl-0">
                 <ProjectsPerPatientTable
                   projectsAnalytics={currentProjects}
                   currentPage={currentProjectPage}
@@ -227,19 +227,21 @@ const Index: React.FC = () => {
                   onPageChange={paginateProjects}
                 />
               </Col>
-              <Col lg="6" className="mb-5 mb-xl-0">
-                <ProjectsPerPatientPieChart
-                  projectsAnalytics={currentProjects}
-                />
-              </Col>
             </Row>
             <Row className="mt-5">
-              <Col lg="6" className="mb-5 mb-xl-0">
+              <Col className="mb-5 mb-xl-0">
                 <InsuranceCompaniesManagement
                   insuranceAnalytics={currentInsurance}
                   currentPage={currentInsurancePage}
                   totalPages={totalInsurancePages}
                   onPageChange={paginateInsurance}
+                />
+              </Col>
+            </Row>
+            <Row className="mt-5">
+              <Col lg="6" className="mb-5 mb-xl-0">
+                <ProjectsPerPatientPieChart
+                  projectsAnalytics={currentProjects}
                 />
               </Col>
               <Col lg="6" className="mb-5 mb-xl-0">
