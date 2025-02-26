@@ -15,16 +15,24 @@ import { ADMIN_ROLE_ID, OPERATOR_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
 import { useState, useEffect, useCallback } from "react";
 import "./Header.css";
 import { OverviewDto } from "types/OverviewDto";
+import { ProjectAnalyticsDto } from "types/ProjectAnalyticsDto";
 
 interface HeaderProps {
+  granularity?: string;
   onOverviewUpdate?: (overview: OverviewDto) => void;
+  onDetailedOverviewUpdate?: (detailed: ProjectAnalyticsDto[]) => void;
   canShowDashboard?: boolean;
 }
 
-const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
+const Header = ({
+  granularity,
+  onOverviewUpdate,
+  onDetailedOverviewUpdate,
+  canShowDashboard = true,
+}: HeaderProps) => {
   const { userName, roleId, userId } = useAuth();
   const { projects, patientTypes } = useAdmin();
-  const { getOverview } = useFile();
+  const { getOverview, getDetailedOverview } = useFile();
   const [overview, setOverview] = useState<OverviewDto | null>(null);
 
   const [fromDate, setFromDate] = useState<string>(
@@ -68,9 +76,11 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
         : selectedPatientType;
     if (fromDate && toDate) {
       getOverview(fromDate, toDate, projectParam, patientParam).then((data) => {
-        if (data && onOverviewUpdate) {
+        if (data) {
           setOverview(data);
-          onOverviewUpdate(data);
+          if (onOverviewUpdate) {
+            onOverviewUpdate(data);
+          }
         }
       });
     }
@@ -83,10 +93,48 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
     onOverviewUpdate,
   ]);
 
+  const fetchDetailedOverview = useCallback(() => {
+    const projectParam =
+      selectedProject &&
+      selectedProject.value.toString().trim().toLowerCase() === "all"
+        ? ""
+        : selectedProject?.label || "";
+    const patientParam =
+      selectedPatientType.trim().toLowerCase() === "all"
+        ? ""
+        : selectedPatientType;
+    if (fromDate && toDate) {
+      getDetailedOverview(
+        fromDate,
+        toDate,
+        projectParam,
+        patientParam,
+        granularity, // use granularity prop here
+        parseInt(roleId || "0") === VIEWER_ROLE_ID ? userId : undefined
+      ).then((detailed) => {
+        if (detailed && onDetailedOverviewUpdate) {
+          console.log(detailed, "detailed");
+          onDetailedOverviewUpdate(detailed.analytics);
+        }
+      });
+    }
+  }, [
+    fromDate,
+    toDate,
+    selectedProject,
+    selectedPatientType,
+    granularity,
+    getDetailedOverview,
+    roleId,
+    userId,
+    onDetailedOverviewUpdate,
+  ]);
+
   useEffect(() => {
     fetchOverview();
+    fetchDetailedOverview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fromDate, toDate, selectedProject, selectedPatientType]);
+  }, [fromDate, toDate, selectedProject, selectedPatientType, granularity]);
 
   return (
     <div className="header bg-gradient-info pb-8 pt-5 pt-md-8">
@@ -131,6 +179,7 @@ const Header = ({ onOverviewUpdate, canShowDashboard = true }: HeaderProps) => {
                   </Col>
                 </Row>
               )}
+
             <Row className="mb-4 text-white">
               <Col lg="12">
                 <label

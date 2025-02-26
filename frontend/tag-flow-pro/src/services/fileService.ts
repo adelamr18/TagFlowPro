@@ -2,6 +2,7 @@ import axios from "axios";
 import { API_URL } from "shared/consts";
 import { ApiResponse } from "types/ApiResponse";
 import { OverviewDto } from "types/OverviewDto";
+import { ProjectAnalytics } from "types/ProjectAnalyticsDto";
 import { UploadFileDetails } from "types/UploadFileDetails";
 
 const MAIN_URL = `${API_URL}/file`;
@@ -130,6 +131,39 @@ const fileService = {
       return {
         success: true,
         data: response.data.overview,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while fetching the overview. Please try again.",
+      };
+    }
+  },
+  getDetailedOverview: async (
+    fromDate: string,
+    toDate: string,
+    projectName: string,
+    patientType: string,
+    timeGranularity: string,
+    viewerId?: number
+  ): Promise<ApiResponse<ProjectAnalytics>> => {
+    try {
+      const response = await axios.get(`${MAIN_URL}/project-analytics`, {
+        params: {
+          fromDate,
+          toDate,
+          projectName,
+          patientType,
+          timeGranularity,
+          viewerId,
+        },
+      });
+      return {
+        success: true,
+        data: response.data,
         message: response.data.message,
       };
     } catch (error: any) {

@@ -12,6 +12,7 @@ import fileService from "services/fileService";
 import { FileStatus } from "types/FileStatus";
 import signalRService from "services/signalRService";
 import { OverviewDto } from "types/OverviewDto";
+import { ProjectAnalytics } from "types/ProjectAnalyticsDto";
 
 interface FileContextType {
   uploadFile: (fileDetails: UploadFileDetails, file: File) => Promise<boolean>;
@@ -24,6 +25,14 @@ interface FileContextType {
     patientType: string,
     viewerId?: number
   ) => Promise<OverviewDto | null>;
+  getDetailedOverview: (
+    fromDate: string,
+    toDate: string,
+    projectName: string,
+    patientType: string,
+    timeGranularity: string,
+    viewerId?: number
+  ) => Promise<ProjectAnalytics | null>;
   files: FileStatus[];
   setFiles: React.Dispatch<React.SetStateAction<FileStatus[]>>;
 }
@@ -35,6 +44,7 @@ const FileContext = createContext<FileContextType>({
   getOverview: async () => null,
   files: [],
   setFiles: () => {},
+  getDetailedOverview: async () => null,
 });
 
 interface FileProviderProps {
@@ -137,6 +147,7 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
         patientParam,
         viewerId
       );
+
       if (success && data) {
         return data;
       } else {
@@ -151,9 +162,45 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
     }
   };
 
+  const getDetailedOverview = async (
+    fromDate: string,
+    toDate: string,
+    projectName: string,
+    patientType: string,
+    timeGranularity: string,
+    viewerId?: number
+  ): Promise<ProjectAnalytics | null> => {
+    const projectParam =
+      projectName.trim().toLowerCase() === "all" ? "" : projectName;
+    const patientParam =
+      patientType.trim().toLowerCase() === "all" ? "" : patientType;
+    try {
+      const { success, data, message } = await fileService.getDetailedOverview(
+        fromDate,
+        toDate,
+        projectParam,
+        patientParam,
+        timeGranularity,
+        viewerId
+      );
+      if (success && data) {
+        return data;
+      } else {
+        toast.error(message || "Failed to fetch detailed overview.");
+        return null;
+      }
+    } catch (error) {
+      toast.error(
+        "An error occurred while fetching overview. Please try again."
+      );
+      return null;
+    }
+  };
+
   useEffect(() => {
     getAllFiles();
     getOverview("", "", "all", "all");
+    getDetailedOverview("", "", "all", "all", "");
   }, []);
 
   return (
@@ -165,6 +212,7 @@ export const FileProvider: FC<FileProviderProps> = ({ children }) => {
         getOverview,
         files,
         setFiles,
+        getDetailedOverview,
       }}
     >
       {children}
