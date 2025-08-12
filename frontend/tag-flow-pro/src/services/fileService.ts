@@ -2,7 +2,16 @@ import axios from "axios";
 import { API_URL } from "shared/consts";
 import { ApiResponse } from "types/ApiResponse";
 import { OverviewDto } from "types/OverviewDto";
+import { ProjectAnalytics } from "types/ProjectAnalyticsDto";
 import { UploadFileDetails } from "types/UploadFileDetails";
+
+const API_KEY =
+  process.env.REACT_APP_API_KEY ||
+  "dGVzdC1rZXktMjU2LWJpdC1sb25nLXNlY3JldC1rZXk";
+axios.interceptors.request.use((config) => {
+  config.headers["X-Api-Key"] = API_KEY;
+  return config;
+});
 
 const MAIN_URL = `${API_URL}/file`;
 
@@ -120,15 +129,49 @@ const fileService = {
     fromDate: string,
     toDate: string,
     projectName: string,
-    patientType: string
+    patientType: string,
+    viewerId?: number
   ): Promise<ApiResponse<OverviewDto>> => {
     try {
       const response = await axios.get(`${MAIN_URL}/overview`, {
-        params: { fromDate, toDate, projectName, patientType },
+        params: { fromDate, toDate, projectName, patientType, viewerId },
       });
       return {
         success: true,
         data: response.data.overview,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "An error occurred while fetching the overview. Please try again.",
+      };
+    }
+  },
+  getDetailedOverview: async (
+    fromDate: string,
+    toDate: string,
+    projectName: string,
+    patientType: string,
+    timeGranularity: string,
+    viewerId?: number
+  ): Promise<ApiResponse<ProjectAnalytics>> => {
+    try {
+      const response = await axios.get(`${MAIN_URL}/project-analytics`, {
+        params: {
+          fromDate,
+          toDate,
+          projectName,
+          patientType,
+          timeGranularity,
+          viewerId,
+        },
+      });
+      return {
+        success: true,
+        data: response.data,
         message: response.data.message,
       };
     } catch (error: any) {

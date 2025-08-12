@@ -15,6 +15,14 @@ interface AuthResponse {
   message: string;
 }
 
+const API_KEY =
+  process.env.REACT_APP_API_KEY ||
+  "dGVzdC1rZXktMjU2LWJpdC1sb25nLXNlY3JldC1rZXk";
+axios.interceptors.request.use((config) => {
+  config.headers["X-Api-Key"] = API_KEY;
+  return config;
+});
+
 const MAIN_URL = `${API_URL}/auth`;
 
 const authService = {

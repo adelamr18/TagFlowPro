@@ -1,27 +1,35 @@
-import Header from "components/Headers/Header";
-import FileStatusTable from "components/Tables/FileStatusTable";
 import React, { useMemo, useState } from "react";
 import { Container, Row } from "reactstrap";
+import Header from "components/Headers/Header";
+import FileStatusTable from "components/Tables/FileStatusTable";
 import { useFile } from "context/FileContext";
+import { useAuth } from "context/AuthContext";
+import { OPERATOR_ROLE_ID } from "shared/consts";
 
 const FileStatus: React.FC = () => {
   const { files, deleteFile } = useFile();
+  const { roleId, userId } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const pageSize = 10;
 
   const filteredFiles = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return files;
+    let filtered = files;
+    if (parseInt(roleId, 10) === OPERATOR_ROLE_ID) {
+      filtered = filtered.filter((file) => file.userId === userId);
     }
-    return files.filter((file) =>
+    if (!searchQuery.trim()) {
+      return filtered;
+    }
+    return filtered.filter((file) =>
       file.fileName.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [files, searchQuery]);
+  }, [files, searchQuery, roleId, userId]);
 
-  const totalPages = useMemo(() => {
-    return Math.ceil(filteredFiles.length / pageSize);
-  }, [filteredFiles, pageSize]);
+  const totalPages = useMemo(
+    () => Math.ceil(filteredFiles.length / pageSize),
+    [filteredFiles, pageSize]
+  );
 
   const paginatedFiles = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
@@ -55,7 +63,7 @@ const FileStatus: React.FC = () => {
               currentPage={currentPage}
               totalPages={totalPages}
               paginateFilesTable={paginateFilesTable}
-              onSearch={(searchValue) => handleOnSearchTable(searchValue)}
+              onSearch={handleOnSearchTable}
               handleDeleteFile={handleDeleteFile}
             />
           </div>

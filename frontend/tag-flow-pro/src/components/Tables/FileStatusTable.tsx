@@ -2,6 +2,8 @@ import TableWrapper from "components/Tables/TableWrapper";
 import { FILENAME_SEARCH_PLACEHOLDER } from "shared/consts";
 import { FileStatus } from "types/FileStatus";
 import { Button } from "reactstrap";
+import { useAuth } from "context/AuthContext";
+import { ADMIN_ROLE_ID } from "shared/consts";
 
 interface FileStatusTableProps {
   files: FileStatus[];
@@ -20,6 +22,8 @@ const FileStatusTable = ({
   onSearch,
   handleDeleteFile,
 }: FileStatusTableProps) => {
+  const { roleId } = useAuth();
+
   const columns = [
     { header: "File Name", accessor: "fileName" },
     { header: "Uploaded By", accessor: "uploadedByUserName" },
@@ -53,11 +57,12 @@ const FileStatusTable = ({
     {
       header: "Actions",
       accessor: "actions",
-      render: (file: FileStatus) => (
-        <Button color="danger" onClick={() => handleDeleteFile(file.fileId)}>
-          Delete
-        </Button>
-      ),
+      render: (file: FileStatus) =>
+        parseInt(roleId || "0") === ADMIN_ROLE_ID ? (
+          <Button color="danger" onClick={() => handleDeleteFile(file.fileId)}>
+            Delete
+          </Button>
+        ) : null,
     },
   ];
 

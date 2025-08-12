@@ -7,4 +7,5 @@ export interface FileStatus {
   fileRowsCounts: number;
   downloadLink: string;
   fileUploadedOn: string;
+  userId: number;
 }

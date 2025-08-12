@@ -29,24 +29,15 @@ const Admin = (props: AdminProps) => {
   }, [location]);
 
   const filterRoutesByRole = (routes: AppRoute[]) => {
-    if (parsedRoleId === OPERATOR_ROLE_ID) {
-      return routes.filter(
-        (route) => route.name !== "Admin Panel" && route.name !== "Dashboard"
-      );
-    } else if (parsedRoleId === VIEWER_ROLE_ID) {
-      return [];
+    if (parsedRoleId === VIEWER_ROLE_ID) {
+      return routes.filter((route) => route.name !== "Admin Panel");
+    } else if (parsedRoleId === OPERATOR_ROLE_ID) {
+      return routes.filter((route) => route.name !== "Admin Panel");
     }
     return routes;
   };
 
   const filteredRoutes = filterRoutesByRole(routes);
-
-  if (
-    parsedRoleId === OPERATOR_ROLE_ID &&
-    location.pathname === "/admin/index"
-  ) {
-    return <Navigate to="/admin/file-upload" replace />;
-  }
 
   const getRoutes = (routes: AppRoute[]) => {
     return routes.map((prop) => {

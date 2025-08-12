@@ -21,7 +21,7 @@ const ProjectsPerPatientTable: React.FC<ProjectsPerPatientTableProps> = ({
     { header: "Insured", accessor: "insuredPatients" },
     { header: "Non Insured", accessor: "nonInsuredPatients" },
     {
-      header: "%ProjectsPerPatient",
+      header: "%PatientsPerProject",
       accessor: "percentageOfPatientsPerProject",
       render: (row: ProjectPatientAnalyticsDto) =>
         `${row.percentageOfPatientsPerProject}%`,
