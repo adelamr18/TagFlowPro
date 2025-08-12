@@ -19,6 +19,14 @@ import { PatientType } from "types/PatientType";
 
 const MAIN_URL = `${API_URL}/admin`;
 
+const API_KEY =
+  process.env.REACT_APP_API_KEY ||
+  "dGVzdC1rZXktMjU2LWJpdC1sb25nLXNlY3JldC1rZXk";
+axios.interceptors.request.use((config) => {
+  config.headers["X-Api-Key"] = API_KEY;
+  return config;
+});
+
 const adminService = {
   getAllRoles: async (): Promise<Role[]> => {
     try {

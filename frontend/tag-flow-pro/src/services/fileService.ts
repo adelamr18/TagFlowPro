@@ -5,6 +5,14 @@ import { OverviewDto } from "types/OverviewDto";
 import { ProjectAnalytics } from "types/ProjectAnalyticsDto";
 import { UploadFileDetails } from "types/UploadFileDetails";
 
+const API_KEY =
+  process.env.REACT_APP_API_KEY ||
+  "dGVzdC1rZXktMjU2LWJpdC1sb25nLXNlY3JldC1rZXk";
+axios.interceptors.request.use((config) => {
+  config.headers["X-Api-Key"] = API_KEY;
+  return config;
+});
+
 const MAIN_URL = `${API_URL}/file`;
 
 const fileService = {
