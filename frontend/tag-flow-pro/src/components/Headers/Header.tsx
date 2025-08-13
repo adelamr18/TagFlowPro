@@ -12,7 +12,7 @@ import {
 } from "reactstrap";
 import Select from "react-select";
 import { ADMIN_ROLE_ID, OPERATOR_ROLE_ID, VIEWER_ROLE_ID } from "shared/consts";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "./Header.css";
 import { OverviewDto } from "types/OverviewDto";
 import { ProjectAnalyticsDto } from "types/ProjectAnalyticsDto";
@@ -63,6 +63,7 @@ const Header = ({
     availableProjects[0]
   );
   const [selectedPatientType, setSelectedPatientType] = useState<string>("all");
+  const lastDetailedReqRef = useRef<number>(0);
 
   const fetchOverview = useCallback(() => {
     const projectParam =
@@ -103,21 +104,40 @@ const Header = ({
       selectedPatientType.trim().toLowerCase() === "all"
         ? ""
         : selectedPatientType;
-    if (fromDate && toDate) {
-      getDetailedOverview(
-        fromDate,
-        toDate,
-        projectParam,
-        patientParam,
-        granularity, // use granularity prop here
-        parseInt(roleId || "0") === VIEWER_ROLE_ID ? userId : undefined
-      ).then((detailed) => {
-        if (detailed && onDetailedOverviewUpdate) {
+
+    if (!fromDate || !toDate) return;
+
+    const reqId = Date.now();
+    lastDetailedReqRef.current = reqId;
+
+    getDetailedOverview(
+      fromDate,
+      toDate,
+      projectParam,
+      patientParam,
+      granularity,
+      parseInt(roleId || "0") === VIEWER_ROLE_ID ? userId : undefined
+    )
+      .then((detailed) => {
+        if (lastDetailedReqRef.current !== reqId) return;
+
+        const analytics: ProjectAnalyticsDto[] = Array.isArray(
+          (detailed as any)?.analytics
+        )
+          ? (detailed as any).analytics
+          : Array.isArray(detailed)
+          ? (detailed as any)
+          : [];
+
+        if (onDetailedOverviewUpdate) {
           console.log(detailed, "detailed");
-          onDetailedOverviewUpdate(detailed.analytics);
+          onDetailedOverviewUpdate(analytics);
         }
+      })
+      .catch(() => {
+        if (lastDetailedReqRef.current !== reqId) return;
+        if (onDetailedOverviewUpdate) onDetailedOverviewUpdate([]);
       });
-    }
   }, [
     fromDate,
     toDate,
