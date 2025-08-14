@@ -7,9 +7,7 @@ const API_KEY =
 
 const connection = new signalR.HubConnectionBuilder()
   .withUrl(`${MAIN_HOST}/file-status-hub`, {
-    headers: {
-      "X-Api-Key": API_KEY,
-    },
+    accessTokenFactory: () => API_KEY, // <-- key sent as ?access_token=...
   })
   .configureLogging(signalR.LogLevel.Information)
   .build();
