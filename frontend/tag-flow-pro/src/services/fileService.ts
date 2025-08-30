@@ -8,6 +8,7 @@ import { UploadFileDetails } from "types/UploadFileDetails";
 const API_KEY =
   process.env.REACT_APP_API_KEY ||
   "dGVzdC1rZXktMjU2LWJpdC1sb25nLXNlY3JldC1rZXk";
+
 axios.interceptors.request.use((config) => {
   config.headers["X-Api-Key"] = API_KEY;
   return config;
@@ -69,6 +70,7 @@ const fileService = {
       };
     }
   },
+
   getAllFiles: async (): Promise<ApiResponse<null>> => {
     try {
       const response = await axios.get(`${MAIN_URL}/get-all-files`);
@@ -86,6 +88,7 @@ const fileService = {
       };
     }
   },
+
   downloadFile: async (
     fileName: string,
     fileId: number
@@ -93,7 +96,8 @@ const fileService = {
     try {
       const downloadUrl = `${MAIN_URL}/download?fileName=${encodeURIComponent(
         fileName
-      )}&fileId=${fileId}`;
+      )}&fileId=${fileId}&apiKey=${encodeURIComponent(API_KEY)}`;
+
       const response = await axios.get(downloadUrl, { responseType: "blob" });
       const blob = new Blob([response.data], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -101,7 +105,9 @@ const fileService = {
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = fileName;
+      document.body.appendChild(link);
       link.click();
+      link.remove();
       return { success: true, message: "File downloaded successfully!" };
     } catch (error: any) {
       return {
@@ -112,6 +118,7 @@ const fileService = {
       };
     }
   },
+
   deleteFile: async (fileId: number): Promise<ApiResponse<null>> => {
     try {
       const response = await axios.delete(`${MAIN_URL}/delete/${fileId}`);
@@ -125,6 +132,7 @@ const fileService = {
       };
     }
   },
+
   getOverview: async (
     fromDate: string,
     toDate: string,
@@ -150,6 +158,7 @@ const fileService = {
       };
     }
   },
+
   getDetailedOverview: async (
     fromDate: string,
     toDate: string,

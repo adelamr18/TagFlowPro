@@ -1,6 +1,12 @@
-export const MAIN_HOST = "https://tagflowprobackend-production.up.railway.app";
-// export const MAIN_HOST = "http://localhost:5500";
-export const API_URL = `${MAIN_HOST}/api`;
+const ORIGIN =
+  (typeof window !== "undefined" && window.location.origin) ||
+  process.env.REACT_APP_MAIN_HOST || // CRA
+  process.env.VITE_MAIN_HOST || // Fallback for Vite
+  "http://localhost:5500";
+
+export const MAIN_HOST = ORIGIN;
+export const API_URL = `${MAIN_HOST.replace(/\/+$/, "")}/api`;
+
 export const ITEMS_PER_PAGE = 5;
 export const ADMIN_ROLE_ID = 1;
 export const USERS_TABLE_TYPE = "Users";
