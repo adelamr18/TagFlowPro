@@ -10,28 +10,34 @@ import {
 } from "reactstrap";
 import classnames from "classnames";
 import { Line } from "react-chartjs-2";
+
+// ✅ Chart.js v4 imports + registration
 import {
   Chart as ChartJS,
-  TimeScale,
-  LinearScale,
-  PointElement,
   LineElement,
+  PointElement,
+  LineController,
+  CategoryScale,
+  LinearScale,
+  TimeScale,
   Tooltip,
   Legend,
-  CategoryScale,
+  Filler,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
+
 import { ProjectAnalyticsDto } from "types/ProjectAnalyticsDto";
-import { chartOptions } from "variables/charts";
 
 ChartJS.register(
-  TimeScale,
-  LinearScale,
-  PointElement,
   LineElement,
+  PointElement,
+  LineController,
+  CategoryScale,
+  LinearScale,
+  TimeScale,
   Tooltip,
   Legend,
-  CategoryScale
+  Filler
 );
 
 interface GeneralPatientsAnalyticsChartProps {
@@ -68,97 +74,97 @@ const GeneralPatientsAnalyticsChart: React.FC<
     onFetchGranularityData?.(timeGranularity);
   }, [timeGranularity, onFetchGranularityData]);
 
-  // Convert analytics -> datasets with {x, y} so time scale can parse properly
+  // Normalize labels to ISO strings so TimeScale can parse them
+  const normalizeLabel = (label: string) => {
+    // daily: "YYYY-MM-DD"
+    // weekly: you send a representative date "YYYY-MM-DD"
+    // monthly: "YYYY-MM" -> make it first day-of-month
+    // yearly: "YYYY" -> make it Jan 1
+    if (/^\d{4}-\d{2}-\d{2}$/.test(label)) return label; // ISO date
+    if (/^\d{4}-\d{2}$/.test(label)) return `${label}-01`;
+    if (/^\d{4}$/.test(label)) return `${label}-01-01`;
+    // fallback: let adapter try to parse
+    return label;
+  };
+
   useEffect(() => {
-    if (!analytics || analytics.length === 0) {
-      setChartData({ labels: [], datasets: [] });
-      return;
-    }
+    if (analytics && analytics.length > 0) {
+      const allLabels = Array.from(
+        new Set(analytics.map((a) => normalizeLabel(a.timeLabel)))
+      ).sort();
 
-    // unique, sorted timelabels (ISO-like strings expected)
-    const allTimeLabels = Array.from(
-      new Set(analytics.map((a) => a.timeLabel))
-    ).sort();
+      const projectNames = Array.from(
+        new Set(analytics.map((a) => a.projectName))
+      );
 
-    const projectNames = Array.from(
-      new Set(analytics.map((a) => a.projectName))
-    );
+      const datasets = projectNames.map((projName, idx) => {
+        const dataPoints = allLabels.map((lbl) => {
+          const original = analytics.find(
+            (a) =>
+              a.projectName === projName && normalizeLabel(a.timeLabel) === lbl
+          );
+          return original ? original.totalPatients : 0;
+        });
 
-    const datasets = projectNames.map((projName, idx) => {
-      const points = allTimeLabels.map((t) => {
-        const found = analytics.find(
-          (a) => a.projectName === projName && a.timeLabel === t
-        );
-        return { x: t, y: found ? found.totalPatients : 0 };
+        return {
+          label: projName,
+          data: dataPoints,
+          borderColor: colorPalette[idx % colorPalette.length],
+          backgroundColor: colorPalette[idx % colorPalette.length],
+          tension: 0.25,
+          borderWidth: 2,
+          pointRadius: 2,
+          fill: false,
+        };
       });
 
-      return {
-        label: projName,
-        data: points, // {x, y} pairs
-        borderColor: colorPalette[idx % colorPalette.length],
-        backgroundColor: colorPalette[idx % colorPalette.length],
-        borderWidth: 2,
-        fill: false,
-        tension: 0.2,
-      };
-    });
-
-    // When using {x,y} we don't need labels on root; Chart.js derives from data.x
-    setChartData({ datasets });
+      setChartData({ labels: allLabels, datasets });
+    } else {
+      setChartData({ labels: [], datasets: [] });
+    }
   }, [analytics, colorPalette]);
 
-  const customChartOptions = useMemo(() => {
-    const base = chartOptions?.() || {};
-
-    // choose parser/unit based on granularity
-    // daily & weekly: yyyy-MM-dd; monthly: yyyy-MM; yearly: yyyy
-    const parser =
-      timeGranularity === "yearly"
-        ? "yyyy"
-        : timeGranularity === "monthly"
-        ? "yyyy-MM"
-        : "yyyy-MM-dd";
-
-    const unit =
-      timeGranularity === "yearly"
-        ? "year"
-        : timeGranularity === "monthly"
-        ? "month"
-        : timeGranularity === "weekly"
-        ? "week"
-        : "day";
-
-    return {
-      ...base,
-      parsing: true, // we provide {x,y}; Chart.js will read them
+  const customChartOptions = useMemo(
+    () => ({
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        ...base.plugins,
-        legend: { display: true, position: "bottom" as const },
+        legend: { display: true, position: "top" as const },
         tooltip: { mode: "index" as const, intersect: false },
       },
-      interaction: { mode: "index" as const, intersect: false },
+      interaction: { mode: "nearest" as const, intersect: false },
+      // ✅ v3/v4 scale syntax
       scales: {
         x: {
-          type: "time",
-          time: { unit, parser },
-          grid: { display: true },
-          ticks: { autoSkip: true, maxRotation: 0 },
+          type: "time" as const,
+          time: {
+            // Adjust unit based on granularity; Chart.js will still auto if omitted
+            unit:
+              timeGranularity === "daily"
+                ? "day"
+                : timeGranularity === "weekly"
+                ? "week"
+                : timeGranularity === "monthly"
+                ? "month"
+                : "year",
+            tooltipFormat: "PP",
+          },
+          ticks: { autoSkip: true, maxTicksLimit: 12 },
+          grid: { display: false },
         },
         y: {
           beginAtZero: true,
           ticks: { stepSize: 10 },
-          grid: { display: true },
+          grid: { color: "rgba(255,255,255,0.1)" },
         },
       },
-    };
-  }, [timeGranularity]);
+    }),
+    [timeGranularity]
+  );
 
-  const handleGranularityChange = (g: string) => setTimeGranularity(g);
-
-  const hasData =
-    chartData?.datasets && chartData.datasets.some((d: any) => d.data?.length);
+  const handleGranularityChange = (granularity: string) => {
+    setTimeGranularity(granularity);
+  };
 
   return (
     <Card className="bg-gradient-default shadow">
@@ -178,7 +184,7 @@ const GeneralPatientsAnalyticsChart: React.FC<
                     className={classnames("py-2 px-3", {
                       active: timeGranularity === g,
                     })}
-                    href="#granularity"
+                    href="#"
                     onClick={(e) => {
                       e.preventDefault();
                       handleGranularityChange(g);
@@ -199,10 +205,10 @@ const GeneralPatientsAnalyticsChart: React.FC<
       </CardHeader>
       <CardBody>
         <div className="chart" style={{ height: 350 }}>
-          {hasData ? (
+          {chartData.labels?.length ? (
             <Line data={chartData} options={customChartOptions} />
           ) : (
-            <p className="text-white m-0">No data available</p>
+            <p className="text-white mb-0">No data available</p>
           )}
         </div>
       </CardBody>
