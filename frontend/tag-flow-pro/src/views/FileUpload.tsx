@@ -49,17 +49,12 @@ const FileUpload: React.FC = () => {
     new Date().toISOString().slice(0, 10)
   );
 
-  const [isUploading, setIsUploading] = useState(false);
-
   // NEW: modal state + invalid details
   const [showInvalidModal, setShowInvalidModal] = useState(false);
   const [invalidSummary, setInvalidSummary] = useState<{
     count: number;
     examples: string[];
-  }>({
-    count: 0,
-    examples: [],
-  });
+  }>({ count: 0, examples: [] });
   const [cleanWorkbookPayload, setCleanWorkbookPayload] = useState<{
     header: any[];
     validRows: any[][];
@@ -119,6 +114,7 @@ const FileUpload: React.FC = () => {
     );
     const dataRows = rows.slice(1);
 
+    // Find SSN col (case-insensitive, exact "SSN")
     const ssnIdx = header.findIndex(
       (h) => String(h || "").toLowerCase() === "ssn"
     );
@@ -137,75 +133,68 @@ const FileUpload: React.FC = () => {
       }
     }
 
-    const summary = { count: invalids.length, examples: invalids.slice(0, 5) };
+    const summary = {
+      count: invalids.length,
+      examples: invalids.slice(0, 5),
+    };
+
     setInvalidSummary(summary);
     setCleanWorkbookPayload({ header, validRows, originalName });
     return summary;
   };
 
-  const actuallyUpload = async (uploadable: File) => {
-    setIsUploading(true);
-    try {
-      const data = await readFile(uploadable);
-      const workbook = XLSX.read(new Uint8Array(data), { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-      const fileRowsCount = Math.max((sheetData.length || 1) - 1, 0);
+  // NEW: build a new xlsx file with only valid rows and upload
+  const uploadCleanedFile = async () => {
+    if (!file || !cleanWorkbookPayload) return;
 
-      const selectedProjectId = parseInt(selectedProject!.value, 10);
-      const selectedPatientTypeId = parseInt(selectedPatientType!.value, 10);
+    const { header, validRows, originalName } = cleanWorkbookPayload;
 
-      const fileDetails: UploadFileDetails = {
-        fileName: uploadable.name,
-        fileStatus: UNPROCESSED_FILE_STATUS,
-        fileRowsCount,
-        selectedProjectId,
-        selectedPatientTypeIds: [selectedPatientTypeId],
-        uploadedByUserName: userName || "",
-        isAdmin: parseInt(roleId || "0", 10) === ADMIN_ROLE_ID,
-        userId,
-        fileUploadedOn: new Date(fileUploadedOn),
-      };
+    const newSheet = XLSX.utils.aoa_to_sheet([header, ...validRows]);
+    const newWb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(newWb, newSheet, "Sheet1");
 
-      await uploadFile(fileDetails, uploadable);
-    } finally {
-      setIsUploading(false);
-    }
+    const outArray = XLSX.write(newWb, { type: "array", bookType: "xlsx" });
+    const cleanName = originalName.toLowerCase().endsWith(".xlsx")
+      ? originalName.replace(/\.xlsx$/i, ".cleaned.xlsx")
+      : `${originalName}.cleaned.xlsx`;
+
+    const cleanedFile = new File([outArray], cleanName, {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    await actuallyUpload(cleanedFile);
+    setShowInvalidModal(false);
+    toast.success(
+      `Uploaded cleaned file (removed ${invalidSummary.count} invalid row${
+        invalidSummary.count === 1 ? "" : "s"
+      }).`
+    );
   };
 
-  // build a new xlsx with only valid rows and upload (also uses isUploading)
-  const uploadCleanedFile = async () => {
-    if (!file || !cleanWorkbookPayload || isUploading) return;
-    setIsUploading(true);
-    try {
-      const { header, validRows, originalName } = cleanWorkbookPayload;
+  const actuallyUpload = async (uploadable: File) => {
+    const data = await readFile(uploadable);
+    const workbook = XLSX.read(new Uint8Array(data), { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const fileRowsCount = Math.max((sheetData.length || 1) - 1, 0);
 
-      const newSheet = XLSX.utils.aoa_to_sheet([header, ...validRows]);
-      const newWb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(newWb, newSheet, "Sheet1");
+    const selectedProjectId = parseInt(selectedProject!.value, 10);
+    const selectedPatientTypeId = parseInt(selectedPatientType!.value, 10);
 
-      const outArray = XLSX.write(newWb, { type: "array", bookType: "xlsx" });
-      const cleanName = originalName.toLowerCase().endsWith(".xlsx")
-        ? originalName.replace(/\.xlsx$/i, ".cleaned.xlsx")
-        : `${originalName}.cleaned.xlsx`;
+    const fileDetails: UploadFileDetails = {
+      fileName: uploadable.name,
+      fileStatus: UNPROCESSED_FILE_STATUS,
+      fileRowsCount,
+      selectedProjectId,
+      selectedPatientTypeIds: [selectedPatientTypeId],
+      uploadedByUserName: userName || "",
+      isAdmin: parseInt(roleId || "0", 10) === ADMIN_ROLE_ID,
+      userId,
+      fileUploadedOn: new Date(fileUploadedOn),
+    };
 
-      const cleanedFile = new File([outArray], cleanName, {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-
-      await actuallyUpload(cleanedFile);
-      setShowInvalidModal(false);
-      toast.success(
-        `Uploaded cleaned file (removed ${invalidSummary.count} invalid row${
-          invalidSummary.count === 1 ? "" : "s"
-        }).`
-      );
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to upload cleaned file");
-    } finally {
-      setIsUploading(false);
-    }
+    await uploadFile(fileDetails, uploadable);
   };
 
   const handleFileUpload = async () => {
@@ -222,8 +211,8 @@ const FileUpload: React.FC = () => {
         toast.error("Patient type is required.");
         return;
       }
-      if (isUploading) return;
 
+      // read and pre-validate before sending to backend
       const data = await readFile(file);
       const workbook = XLSX.read(new Uint8Array(data), { type: "array" });
       const summary = validateAndPrepare(workbook, file.name);
@@ -251,7 +240,6 @@ const FileUpload: React.FC = () => {
                 <CardTitle tag="h3" className="text-center mb-4">
                   File Upload
                 </CardTitle>
-
                 <div className="mb-4">
                   <label htmlFor="fileInput" className="form-label">
                     <strong>Select File</strong>
@@ -266,7 +254,6 @@ const FileUpload: React.FC = () => {
                       setFile(selectedFile);
                     }}
                     style={{ cursor: "pointer" }}
-                    disabled={isUploading}
                   />
                 </div>
 
@@ -279,7 +266,6 @@ const FileUpload: React.FC = () => {
                     onChange={(v) => setSelectedProject(v as any)}
                     value={selectedProject}
                     placeholder="Select Project..."
-                    isDisabled={isUploading}
                   />
                 </div>
 
@@ -292,7 +278,6 @@ const FileUpload: React.FC = () => {
                     onChange={(v) => setSelectedPatientType(v as any)}
                     value={selectedPatientType}
                     placeholder="Select Patient Type..."
-                    isDisabled={isUploading}
                   />
                 </div>
 
@@ -304,17 +289,12 @@ const FileUpload: React.FC = () => {
                     type="date"
                     value={fileUploadedOn}
                     onChange={(e) => setFileUploadedOn(e.target.value)}
-                    disabled={isUploading}
                   />
                 </div>
 
                 <div className="text-center">
-                  <Button
-                    color="primary"
-                    onClick={handleFileUpload}
-                    disabled={isUploading}
-                  >
-                    {isUploading ? "Uploading…" : "Upload Files"}
+                  <Button color="primary" onClick={handleFileUpload}>
+                    Upload Files
                   </Button>
                 </div>
               </CardBody>
@@ -354,19 +334,11 @@ const FileUpload: React.FC = () => {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button
-            color="secondary"
-            onClick={() => setShowInvalidModal(false)}
-            disabled={isUploading}
-          >
+          <Button color="secondary" onClick={() => setShowInvalidModal(false)}>
             No
           </Button>
-          <Button
-            color="primary"
-            onClick={uploadCleanedFile}
-            disabled={isUploading}
-          >
-            {isUploading ? "Uploading…" : "Yes, remove & upload"}
+          <Button color="primary" onClick={uploadCleanedFile}>
+            Yes, remove & upload
           </Button>
         </ModalFooter>
       </Modal>
