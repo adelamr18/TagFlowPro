@@ -44,77 +44,65 @@ const GeneralPatientsAnalyticsChart: React.FC<
   );
 
   useEffect(() => {
-    if (onFetchGranularityData) {
-      onFetchGranularityData(timeGranularity);
-    }
+    if (onFetchGranularityData) onFetchGranularityData(timeGranularity);
   }, [timeGranularity, onFetchGranularityData]);
 
   useEffect(() => {
-    if (analytics && analytics.length > 0) {
-      const allTimeLabels = Array.from(
-        new Set(analytics.map((item) => item.timeLabel))
-      ).sort();
-
-      const projectNames = Array.from(
-        new Set(analytics.map((item) => item.projectName))
-      );
-
-      const datasets = projectNames.map((projName, index) => {
-        const dataPoints = allTimeLabels.map((timeLabel) => {
-          const found = analytics.find(
-            (a) => a.projectName === projName && a.timeLabel === timeLabel
-          );
-          return found ? found.totalPatients : 0;
-        });
-
-        return {
-          label: projName,
-          data: dataPoints,
-          borderColor: colorPalette[index % colorPalette.length],
-          backgroundColor: colorPalette[index % colorPalette.length],
-          borderWidth: 2,
-          fill: false,
-        };
-      });
-
-      setChartData({
-        labels: allTimeLabels,
-        datasets,
-      });
-    } else {
+    if (!analytics || analytics.length === 0) {
       setChartData({ labels: [], datasets: [] });
+      return;
     }
+
+    const allTimeLabels = Array.from(
+      new Set(analytics.map((item) => item.timeLabel))
+    ).sort();
+    const projectNames = Array.from(
+      new Set(analytics.map((item) => item.projectName))
+    );
+
+    const datasets = projectNames.map((projName, index) => {
+      const dataPoints = allTimeLabels.map((timeLabel) => {
+        const found = analytics.find(
+          (a) => a.projectName === projName && a.timeLabel === timeLabel
+        );
+        return found ? found.totalPatients : 0;
+      });
+
+      return {
+        label: projName,
+        data: dataPoints,
+        borderColor: colorPalette[index % colorPalette.length],
+        backgroundColor: "transparent",
+        borderWidth: 2,
+        tension: 0.3,
+        fill: false,
+        pointRadius: 3,
+      };
+    });
+
+    setChartData({ labels: allTimeLabels, datasets });
   }, [analytics, colorPalette]);
 
   const customChartOptions = useMemo(() => {
-    const baseOptions = chartOptions(); // your existing config
+    const baseOptions = chartOptions();
 
     return {
       ...baseOptions,
       scales: {
-        xAxes: [
-          {
-            type: "time", // Interpret labels as dates
-            time: {
-              unit: "day", // or 'week', 'month', etc. Adjust as needed
-            },
-          },
-        ],
-        yAxes: [
-          {
-            ticks: {
-              beginAtZero: true,
-              stepSize: 10, // Show increments of 10
-            },
-          },
-        ],
+        x: {
+          type: "category", // now category for string labels
+          title: { display: true, text: "Time" },
+        },
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: "Number of Patients" },
+        },
       },
     };
   }, []);
 
-  const handleGranularityChange = (granularity: string) => {
+  const handleGranularityChange = (granularity: string) =>
     setTimeGranularity(granularity);
-  };
 
   return (
     <Card className="bg-gradient-default shadow">
@@ -155,16 +143,11 @@ const GeneralPatientsAnalyticsChart: React.FC<
         </Row>
       </CardHeader>
       <CardBody>
-        <div className="chart">
-          {chartData.labels && chartData.labels.length > 0 ? (
-            <Line
-              data={chartData}
-              options={customChartOptions} // merged config
-            />
-          ) : (
-            <p className="text-white">No data available</p>
-          )}
-        </div>
+        {chartData.labels && chartData.labels.length > 0 ? (
+          <Line data={chartData} options={customChartOptions} />
+        ) : (
+          <p className="text-white">No data available</p>
+        )}
       </CardBody>
     </Card>
   );
