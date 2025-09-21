@@ -8,37 +8,10 @@ import {
   NavItem,
   NavLink,
 } from "reactstrap";
-import classnames from "classnames";
 import { Line } from "react-chartjs-2";
-
-// ✅ Chart.js v4 imports + registration
-import {
-  Chart as ChartJS,
-  LineElement,
-  PointElement,
-  LineController,
-  CategoryScale,
-  LinearScale,
-  TimeScale,
-  Tooltip,
-  Legend,
-  Filler,
-} from "chart.js";
-import "chartjs-adapter-date-fns";
-
+import classnames from "classnames";
 import { ProjectAnalyticsDto } from "types/ProjectAnalyticsDto";
-
-ChartJS.register(
-  LineElement,
-  PointElement,
-  LineController,
-  CategoryScale,
-  LinearScale,
-  TimeScale,
-  Tooltip,
-  Legend,
-  Filler
-);
+import { chartOptions } from "variables/charts";
 
 interface GeneralPatientsAnalyticsChartProps {
   analytics: ProjectAnalyticsDto[] | null;
@@ -54,7 +27,7 @@ const GeneralPatientsAnalyticsChart: React.FC<
   GeneralPatientsAnalyticsChartProps
 > = ({ analytics, onFetchGranularityData }) => {
   const [timeGranularity, setTimeGranularity] = useState<string>("monthly");
-  const [chartData, setChartData] = useState<any>({ labels: [], datasets: [] });
+  const [chartData, setChartData] = useState<any>({});
 
   const colorPalette = useMemo(
     () => [
@@ -71,96 +44,73 @@ const GeneralPatientsAnalyticsChart: React.FC<
   );
 
   useEffect(() => {
-    onFetchGranularityData?.(timeGranularity);
+    if (onFetchGranularityData) {
+      onFetchGranularityData(timeGranularity);
+    }
   }, [timeGranularity, onFetchGranularityData]);
-
-  // Normalize labels to ISO strings so TimeScale can parse them
-  const normalizeLabel = (label: string) => {
-    // daily: "YYYY-MM-DD"
-    // weekly: you send a representative date "YYYY-MM-DD"
-    // monthly: "YYYY-MM" -> make it first day-of-month
-    // yearly: "YYYY" -> make it Jan 1
-    if (/^\d{4}-\d{2}-\d{2}$/.test(label)) return label; // ISO date
-    if (/^\d{4}-\d{2}$/.test(label)) return `${label}-01`;
-    if (/^\d{4}$/.test(label)) return `${label}-01-01`;
-    // fallback: let adapter try to parse
-    return label;
-  };
 
   useEffect(() => {
     if (analytics && analytics.length > 0) {
-      const allLabels = Array.from(
-        new Set(analytics.map((a) => normalizeLabel(a.timeLabel)))
+      const allTimeLabels = Array.from(
+        new Set(analytics.map((item) => item.timeLabel))
       ).sort();
 
       const projectNames = Array.from(
-        new Set(analytics.map((a) => a.projectName))
+        new Set(analytics.map((item) => item.projectName))
       );
 
-      const datasets = projectNames.map((projName, idx) => {
-        const dataPoints = allLabels.map((lbl) => {
-          const original = analytics.find(
-            (a) =>
-              a.projectName === projName && normalizeLabel(a.timeLabel) === lbl
+      const datasets = projectNames.map((projName, index) => {
+        const dataPoints = allTimeLabels.map((timeLabel) => {
+          const found = analytics.find(
+            (a) => a.projectName === projName && a.timeLabel === timeLabel
           );
-          return original ? original.totalPatients : 0;
+          return found ? found.totalPatients : 0;
         });
 
         return {
           label: projName,
           data: dataPoints,
-          borderColor: colorPalette[idx % colorPalette.length],
-          backgroundColor: colorPalette[idx % colorPalette.length],
-          tension: 0.25,
+          borderColor: colorPalette[index % colorPalette.length],
+          backgroundColor: colorPalette[index % colorPalette.length],
           borderWidth: 2,
-          pointRadius: 2,
           fill: false,
         };
       });
 
-      setChartData({ labels: allLabels, datasets });
+      setChartData({
+        labels: allTimeLabels,
+        datasets,
+      });
     } else {
       setChartData({ labels: [], datasets: [] });
     }
   }, [analytics, colorPalette]);
 
-  const customChartOptions = useMemo(
-    () => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: "top" as const },
-        tooltip: { mode: "index" as const, intersect: false },
-      },
-      interaction: { mode: "nearest" as const, intersect: false },
-      // ✅ v3/v4 scale syntax
+  const customChartOptions = useMemo(() => {
+    const baseOptions = chartOptions(); // your existing config
+
+    return {
+      ...baseOptions,
       scales: {
-        x: {
-          type: "time" as const,
-          time: {
-            // Adjust unit based on granularity; Chart.js will still auto if omitted
-            unit:
-              timeGranularity === "daily"
-                ? "day"
-                : timeGranularity === "weekly"
-                ? "week"
-                : timeGranularity === "monthly"
-                ? "month"
-                : "year",
-            tooltipFormat: "PP",
+        xAxes: [
+          {
+            type: "time", // Interpret labels as dates
+            time: {
+              unit: "day", // or 'week', 'month', etc. Adjust as needed
+            },
           },
-          ticks: { autoSkip: true, maxTicksLimit: 12 },
-          grid: { display: false },
-        },
-        y: {
-          beginAtZero: true,
-          ticks: { stepSize: 10 },
-          grid: { color: "rgba(255,255,255,0.1)" },
-        },
+        ],
+        yAxes: [
+          {
+            ticks: {
+              beginAtZero: true,
+              stepSize: 10, // Show increments of 10
+            },
+          },
+        ],
       },
-    }),
-    [timeGranularity]
-  );
+    };
+  }, []);
 
   const handleGranularityChange = (granularity: string) => {
     setTimeGranularity(granularity);
@@ -178,23 +128,24 @@ const GeneralPatientsAnalyticsChart: React.FC<
           </div>
           <div className="col">
             <Nav className="justify-content-end" pills>
-              {["daily", "weekly", "monthly", "yearly"].map((g) => (
-                <NavItem key={g}>
+              {["daily", "weekly", "monthly", "yearly"].map((granularity) => (
+                <NavItem key={granularity}>
                   <NavLink
                     className={classnames("py-2 px-3", {
-                      active: timeGranularity === g,
+                      active: timeGranularity === granularity,
                     })}
-                    href="#"
+                    href="#pablo"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleGranularityChange(g);
+                      handleGranularityChange(granularity);
                     }}
                   >
                     <span className="d-none d-md-block">
-                      {g.charAt(0).toUpperCase() + g.slice(1)}
+                      {granularity.charAt(0).toUpperCase() +
+                        granularity.slice(1)}
                     </span>
                     <span className="d-md-none">
-                      {g.charAt(0).toUpperCase()}
+                      {granularity.charAt(0).toUpperCase()}
                     </span>
                   </NavLink>
                 </NavItem>
@@ -204,11 +155,14 @@ const GeneralPatientsAnalyticsChart: React.FC<
         </Row>
       </CardHeader>
       <CardBody>
-        <div className="chart" style={{ height: 350 }}>
-          {chartData.labels?.length ? (
-            <Line data={chartData} options={customChartOptions} />
+        <div className="chart">
+          {chartData.labels && chartData.labels.length > 0 ? (
+            <Line
+              data={chartData}
+              options={customChartOptions} // merged config
+            />
           ) : (
-            <p className="text-white mb-0">No data available</p>
+            <p className="text-white">No data available</p>
           )}
         </div>
       </CardBody>

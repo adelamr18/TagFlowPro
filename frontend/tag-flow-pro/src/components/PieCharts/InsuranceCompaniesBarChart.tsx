@@ -62,32 +62,28 @@ const InsuranceCompaniesBarChart: React.FC<InsuranceCompaniesBarChartProps> = ({
       padding: { left: 0, right: 0, top: 0, bottom: 0 },
     },
     scales: {
-      xAxes: [
-        {
-          ticks: {
-            autoSkip: false,
-            minRotation: 45,
-            maxRotation: 45,
-            fontSize: 12,
-            padding: 5,
-            // The truncated label is used on the axis
-            callback: function (label: string) {
-              return label;
-            },
+      x: {
+        ticks: {
+          autoSkip: false,
+          minRotation: 45,
+          maxRotation: 45,
+          fontSize: 12,
+          padding: 5,
+          // The truncated label is used on the axis
+          callback: function (label: string) {
+            return label;
           },
-          gridLines: { display: true, color: "#ccc" },
         },
-      ],
-      yAxes: [
-        {
-          ticks: {
-            beginAtZero: true,
-            stepSize: 5, // Ticks: 0, 5, 10, 15, etc.
-            fontSize: 12,
-          },
-          gridLines: { display: true, color: "#ccc" },
+        grid: { display: true, color: "#ccc" },
+      },
+      y: {
+        ticks: {
+          beginAtZero: true,
+          stepSize: 5, // Ticks: 0, 5, 10, 15, etc.
+          fontSize: 12,
         },
-      ],
+        grid: { display: true, color: "#ccc" },
+      },
     },
     legend: { display: false },
     tooltips: {
