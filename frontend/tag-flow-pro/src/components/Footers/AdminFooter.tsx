@@ -15,7 +15,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               target="_blank"
             >
-              Adel Gebril
+              Selat Technologies
             </a>
           </div>
         </Col>
